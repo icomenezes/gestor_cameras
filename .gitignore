@@ -1,6 +1,9 @@
 *.log
 .DS_Store
 .env
+/.claude/
+/storage/app/clips/
+/storage/app/dvr_cache/
 .env.backup
 .env.production
 .phpactor.json

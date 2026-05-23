@@ -11,10 +11,11 @@
 
 <div class="relative w-full h-full bg-black flex items-center justify-center" id="{{ $playerId }}-wrap">
 
-    {{-- WebRTC direto no go2rtc --}}
+    {{-- WebRTC (go2rtc via proxy Laravel) --}}
     @if($isWebRTC)
         @php
-            $proxyUrl = $url; // usa URL direta do go2rtc (sem proxy Laravel)
+            preg_match('/[?&]src=([^&]+)/', $url, $m);
+            $proxyUrl = route('go2rtc.webrtc') . '?src=' . ($m[1] ?? '');
         @endphp
         <video id="{{ $playerId }}" class="w-full h-full" autoplay muted playsinline controls></video>
         <div id="{{ $playerId }}-status" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-gray-400 text-sm gap-2">

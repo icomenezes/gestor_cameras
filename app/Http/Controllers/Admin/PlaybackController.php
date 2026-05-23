@@ -55,9 +55,11 @@ class PlaybackController extends Controller
         $startTime  = Carbon::parse($request->datetime);
         $streamName = $this->dvr->addPlaybackStream($camera, $startTime);
 
+        $go2rtcBase = rtrim(config('cameras.go2rtc_public_url', config('cameras.go2rtc_url')), '/');
+
         return response()->json([
             'stream_name' => $streamName,
-            'webrtc_url'  => route('go2rtc.webrtc') . '?src=' . $streamName,
+            'webrtc_url'  => "{$go2rtcBase}/api/webrtc?src={$streamName}",
         ]);
     }
 

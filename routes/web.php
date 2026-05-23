@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CameraController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PlaybackController;
 use App\Http\Controllers\Admin\RecordingController;
 use App\Http\Controllers\Admin\SegmentController;
@@ -18,7 +19,7 @@ Route::get('/', function () {
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
-    Route::get('/', fn() => redirect()->route('admin.cameras.index'));
+    Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('cameras', CameraController::class);
     Route::post('cameras/{camera}/recording', [SegmentController::class, 'toggleRecording'])->name('cameras.recording.toggle');

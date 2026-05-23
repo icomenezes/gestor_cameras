@@ -29,6 +29,15 @@
         </div>
 
         <nav class="flex-1 px-3 space-y-1">
+            <a href="{{ route('admin.dashboard') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Dashboard
+            </a>
             <a href="{{ route('admin.cameras.index') }}"
                class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
                       {{ request()->routeIs('admin.cameras.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
@@ -87,19 +96,19 @@
 
     {{-- Main content --}}
     <div class="flex-1 flex flex-col lg:ml-64 min-w-0">
-        <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center gap-4">
+        <header class="bg-gray-900 border-b border-gray-800 px-6 py-2.5 flex items-center gap-4">
             <button class="lg:hidden text-gray-400 hover:text-white" @click="sidebarOpen = true">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
-            <h1 class="text-lg font-semibold text-white">@yield('title', 'Dashboard')</h1>
+            <h1 class="text-base font-semibold text-white">@yield('title', 'Dashboard')</h1>
             <div class="ml-auto flex items-center gap-3">
                 @yield('header-actions')
             </div>
         </header>
 
-        <main class="flex-1 p-6">
+        <main class="flex-1 p-4">
             @if(session('success'))
                 <div class="mb-6 flex items-center gap-3 bg-green-900/40 border border-green-700 text-green-300 px-4 py-3 rounded text-sm">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

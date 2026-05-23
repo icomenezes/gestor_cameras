@@ -78,10 +78,9 @@ class Go2rtcService
     private function apiAddStream(string $name, string $url): void
     {
         try {
-            Http::timeout(3)->put("{$this->apiUrl}/api/streams", [
-                'name' => $name,
-                'src'  => $url,
-            ]);
+            Http::timeout(3)->put(
+                "{$this->apiUrl}/api/streams?" . http_build_query(['name' => $name, 'src' => $url])
+            );
         } catch (\Throwable $e) {
             Log::debug('go2rtc: API add stream falhou: ' . $e->getMessage());
         }
@@ -90,7 +89,9 @@ class Go2rtcService
     private function apiRemoveStream(string $name): void
     {
         try {
-            Http::timeout(3)->delete("{$this->apiUrl}/api/streams", ['name' => $name]);
+            Http::timeout(3)->delete(
+                "{$this->apiUrl}/api/streams?" . http_build_query(['name' => $name])
+            );
         } catch (\Throwable $e) {
             Log::debug('go2rtc: API remove stream falhou: ' . $e->getMessage());
         }

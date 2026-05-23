@@ -57,7 +57,7 @@ class ClipController extends Controller
         $request->validate([
             'camera_id'  => 'required|integer|exists:cameras,id',
             'started_at' => 'required|date',
-            'duration'   => 'integer|in:60,300,600',
+            'duration'   => 'integer|min:5|max:600',
             'title'      => 'nullable|string|max:100',
         ]);
 
@@ -91,6 +91,10 @@ class ClipController extends Controller
         ]);
 
         ProcessClip::dispatch($clip->id);
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Clipe criado! Estará disponível em alguns minutos.']);
+        }
 
         return back()->with('success', 'Clipe criado! Estará disponível em alguns minutos.');
     }

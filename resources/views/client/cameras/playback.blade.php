@@ -3,7 +3,14 @@
 
 @section('content')
 <div class="max-w-5xl mx-auto space-y-5"
-     x-data='playbackDvr(@json(route("cameras.playback.stream.client", $camera)), @json(route("go2rtc.webrtc")), @json(route("playback.stop.client")))'>
+     x-data='playbackDvr(
+         @json(route("cameras.playback.stream.client", $camera)),
+         @json(route("go2rtc.webrtc")),
+         @json(route("playback.stop.client")),
+         @json(route("clips.store")),
+         {{ $camera->id }},
+         @json(csrf_token())
+     )'>
 
     {{-- Breadcrumb --}}
     <div class="flex items-center gap-3 text-sm text-gray-400">
@@ -100,6 +107,30 @@
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
                     </svg>
                     Conectando ao DVR...
+                </div>
+
+                {{-- Botão de gravação sobre o vídeo (aparece após conectar) --}}
+                <div class="absolute bottom-14 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
+
+                    <template x-if="!recording">
+                        <button @click="startRecording"
+                                class="flex items-center gap-2 bg-red-600/90 hover:bg-red-500 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg transition-colors">
+                            <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
+                            Gravar cena
+                        </button>
+                    </template>
+                    <template x-if="recording">
+                        <button @click="stopRecording" :disabled="clipSubmitting"
+                                class="flex items-center gap-2 bg-red-700 hover:bg-red-600 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg transition-all">
+                            <span class="w-2.5 h-2.5 rounded-sm bg-white animate-pulse"></span>
+                            <span x-text="clipSubmitting ? 'Salvando...' : '■ Parar — ' + recordingLabel"></span>
+                        </button>
+                    </template>
+
+                    <p x-show="clipSuccess" x-text="clipSuccess"
+                       class="bg-green-900/90 text-green-300 text-xs px-3 py-1.5 rounded-full backdrop-blur-sm text-center"></p>
+                    <p x-show="clipError" x-text="clipError"
+                       class="bg-red-900/90 text-red-300 text-xs px-3 py-1.5 rounded-full backdrop-blur-sm text-center"></p>
                 </div>
             </div>
         </div>

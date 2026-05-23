@@ -138,7 +138,8 @@
                     </div>
                 @enderror
 
-                <form action="{{ route('clips.store') }}" method="POST" class="space-y-2">
+                <form action="{{ route('clips.store') }}" method="POST" class="space-y-2"
+                      x-data="{ submitting: false }" @submit="submitting = true">
                     @csrf
                     <input type="hidden" name="camera_id" value="{{ $camera->id }}">
 
@@ -165,9 +166,15 @@
                                class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
                     </div>
 
-                    <button type="submit"
-                            class="w-full bg-green-700 hover:bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
-                        ⬇ Criar Clipe
+                    <button type="submit" :disabled="submitting"
+                            class="w-full flex items-center justify-center gap-2 bg-green-700 hover:bg-green-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-md transition-colors">
+                        <template x-if="submitting">
+                            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                        </template>
+                        <span x-text="submitting ? 'Aguarde, criando clipe...' : '⬇ Criar Clipe'"></span>
                     </button>
                 </form>
 

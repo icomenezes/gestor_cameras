@@ -71,14 +71,24 @@
                             <p class="text-white text-sm font-semibold drop-shadow">{{ $camera->name }}</p>
                             <p class="text-gray-300 text-xs">{{ $camera->location }}</p>
                         </div>
-                        <div class="flex gap-1.5 pointer-events-auto">
+                        <div class="flex gap-1.5 pointer-events-auto" x-data="{ going: '' }">
                             <a href="{{ route('cameras.live', $camera) }}"
-                               class="px-2.5 py-1 bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-medium rounded-md backdrop-blur-sm transition-colors">
-                                Expandir
+                               @click="going = 'live'"
+                               class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-medium rounded-md backdrop-blur-sm transition-colors">
+                                <svg x-show="going === 'live'" class="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                <span x-text="going === 'live' ? 'Abrindo...' : 'Expandir'"></span>
                             </a>
                             <a href="{{ route('cameras.playback', $camera) }}"
-                               class="px-2.5 py-1 bg-gray-800/90 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-md-lg backdrop-blur-sm transition-colors">
-                                Gravações
+                               @click="going = 'rec'"
+                               class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/90 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-md backdrop-blur-sm transition-colors">
+                                <svg x-show="going === 'rec'" class="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                <span x-text="going === 'rec' ? 'Abrindo...' : 'Gravações'"></span>
                             </a>
                         </div>
                     </div>

@@ -14,13 +14,16 @@ class PlaybackController extends Controller
 
     public function index(Camera $camera, Request $request)
     {
-        $date   = $request->date ? Carbon::parse($request->date) : today();
-        $ranges = $this->dvr->getRecordedRanges($camera, $date);
+        $date        = $request->date ? Carbon::parse($request->date) : today();
+        $granularity = (int) in_array((int) $request->granularity, [1, 5, 10])
+            ? $request->granularity
+            : 5;
+        $ranges      = $this->dvr->getRecordedRanges($camera, $date);
+        $totalSlots  = (int) (1440 / $granularity); // 24h * 60min / granularity
 
-        // Monta timeline de 24h com blocos de 5 min indicando disponibilidade
-        $timeline = collect(range(0, 287))->map(function (int $slot) use ($ranges, $date) {
-            $start = $date->copy()->startOfDay()->addMinutes($slot * 5);
-            $end   = $start->copy()->addMinutes(5);
+        $timeline = collect(range(0, $totalSlots - 1))->map(function (int $slot) use ($ranges, $date, $granularity) {
+            $start = $date->copy()->startOfDay()->addMinutes($slot * $granularity);
+            $end   = $start->copy()->addMinutes($granularity);
 
             $hasData = $ranges->contains(function ($r) use ($start, $end) {
                 return Carbon::parse($r['start'])->lt($end)
@@ -35,7 +38,7 @@ class PlaybackController extends Controller
             ];
         });
 
-        return view('admin.cameras.playback', compact('camera', 'date', 'timeline', 'ranges'));
+        return view('admin.cameras.playback', compact('camera', 'date', 'timeline', 'ranges', 'granularity', 'totalSlots'));
     }
 
     /**

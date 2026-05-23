@@ -1,6 +1,16 @@
 ﻿@extends('admin.layout')
 @section('title', 'Usuários')
 
+@section('header-actions')
+<a href="{{ route('admin.users.create') }}"
+   class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
+    Novo usuário
+</a>
+@endsection
+
 @section('content')
 <div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
     <table class="w-full text-sm">

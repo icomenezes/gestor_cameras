@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('client.layout')
 @section('title', 'Assinatura Inativa')
 
 @section('content')

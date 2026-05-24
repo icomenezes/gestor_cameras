@@ -49,10 +49,7 @@ function fmtBytes(int $bytes): string {
             </div>
             <p class="text-3xl font-bold text-white">{{ $clientsTotal }}</p>
             <p class="text-xs text-gray-500 mt-1">
-                <span class="text-green-400">{{ $clientsActive }} com acesso</span>
-                @if($clientsTotal - $clientsActive > 0)
-                · {{ $clientsTotal - $clientsActive }} sem câmera
-                @endif
+                <span class="text-green-400">{{ $onlineNow->count() }} online agora</span>
             </p>
         </div>
 

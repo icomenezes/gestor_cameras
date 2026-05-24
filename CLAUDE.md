@@ -1,123 +1,233 @@
-# Sistema de Câmeras de Segurança — Contexto do Projeto
+# Sistema de Câmeras de Segurança — Documentação do Projeto
 
-## Objetivo
-Sistema web para gerenciar câmeras de segurança e disponibilizar acesso a alunos/clientes
-através de um painel com login. Construído em **Laravel 11** com layout moderno.
+## Visão geral
+Sistema web SaaS para academias, escolas esportivas e estabelecimentos que precisam disponibilizar
+acesso a câmeras de segurança para alunos/clientes de forma controlada, com assinatura e auditoria completa.
 
-## Funcionalidades planejadas
-| Módulo | Descrição |
+Construído em **Laravel 13** (v13.11.2), **Tailwind CSS**, **Alpine.js** e integração com **go2rtc** para streaming RTSP via WebRTC.
+
+---
+
+## Stack
+
+| Componente | Versão / Detalhe |
 |---|---|
-| Autenticação | Login de admin + painel separado para alunos/clientes |
-| Câmeras | CRUD completo (nome, local, URL do stream, status ativo/inativo) |
-| Ao vivo | Player de stream em tempo real (RTSP via HLS) |
-| Gravações | Upload, listagem e reprodução de vídeos gravados |
-| Acessos | Admin controla quais câmeras cada aluno/cliente pode ver |
-| Layout | Tailwind CSS + Alpine.js, visual moderno e responsivo |
+| PHP | 8.3.30 (Laragon) |
+| Laravel | 13.11.2 |
+| MySQL | 8.4.3 |
+| Breeze | 2.4.2 (autenticação) |
+| Tailwind CSS + Alpine.js | frontend |
+| Vite | build de assets |
+| go2rtc | proxy RTSP → WebRTC |
+| ffmpeg | transcodificação de gravações |
 
-## Stack do projeto
-- **PHP** 8.3.30 (Laragon — `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64`)
-- **Laravel** 11 (Laravel 13 na prática — v13.11.2)
-- **MySQL** 8.4.3 (Laragon)
-- **Breeze** v2.4.2 — autenticação (em instalação)
-- **Tailwind CSS** + **Alpine.js** — frontend
-- **Vite** — build de assets
+---
 
-## Ambiente
-- Projeto: `C:\laragon\www\cameras`
-- URL local: `http://cameras.test` (configurar no Laragon > Hosts)
-- Banco de dados: `cameras` (MySQL, root sem senha)
-- PHP no PATH do Laragon: `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64`
+## Ambiente local
 
-## .env configurado
+- **Projeto:** `C:\laragon\www\cameras`
+- **URL local:** `http://cameras.test`
+- **PHP:** `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe`
+- **Banco:** MySQL `cameras` (root sem senha)
+- **go2rtc:** `http://localhost:1984`
+
+### Comandos artisan (sempre usar o PHP do Laragon)
+
+```powershell
+$php = "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe"
+Set-Location "C:\laragon\www\cameras"
+& $php artisan migrate
+& $php artisan schedule:run
+```
+
+### .env principais
+
 ```
 APP_NAME="Sistema de Câmeras"
 APP_URL=http://cameras.test
 APP_LOCALE=pt_BR
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
 DB_DATABASE=cameras
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-## Status atual (em 21/05/2026)
-- [x] Projeto Laravel criado em `C:\laragon\www\cameras`
-- [x] .env configurado (MySQL, locale pt_BR, URL cameras.test)
-- [x] ZIP extension habilitada no php.ini do Laragon
-- [ ] `laravel/breeze` instalando (composer require em background — aguardar concluir)
-- [ ] `php artisan breeze:install blade` — scaffold de auth
-- [ ] Criar banco `cameras` no MySQL
-- [ ] `php artisan migrate`
-- [ ] Criar migrations customizadas (cameras, recordings, camera_user)
-- [ ] Models, Controllers, Policies
-- [ ] Views: layout, dashboard admin, painel aluno, câmeras, gravações
+---
 
-## Próximos passos ao retomar
-Usar sempre o PHP do Laragon para artisan e composer:
+## Banco de dados
 
-```powershell
-$php = "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe"
-$composer = "C:\laragon\bin\composer\composer.phar"
-Set-Location "C:\laragon\www\cameras"
-
-# Verificar se Breeze terminou de instalar
-& $php artisan list
-
-# Instalar scaffold do Breeze (blade + Tailwind)
-& $php artisan breeze:install blade
-
-# Criar banco no MySQL (Laragon precisa estar rodando)
-& "C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe" -u root -e "CREATE DATABASE IF NOT EXISTS cameras CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
-# Rodar migrations
-& $php artisan migrate
-
-# Instalar dependências JS e buildar
-npm install
-npm run build
-```
-
-## Estrutura de banco planejada
-
-### Tabela `cameras`
+### `users`
 | Campo | Tipo | Descrição |
 |---|---|---|
-| id | bigint PK | |
+| role | enum | `admin` \| `client` |
+| clips_quota_mb | int | Quota de storage de clipes (100/300/500/800 MB) |
+
+### `cameras`
+| Campo | Tipo | Descrição |
+|---|---|---|
 | name | string | Nome da câmera |
-| location | string | Localização/descrição |
-| stream_url | string | URL do stream (RTSP, HLS, etc) |
-| is_active | boolean | Ativa/inativa |
-| created_at / updated_at | timestamp | |
+| location | string | Localização |
+| stream_url | string | URL manual (HLS/RTSP) |
+| ip | string | IP da câmera/NVR |
+| port | int | Porta RTSP (padrão 554) |
+| http_port | int | Porta HTTP do NVR |
+| cam_username | string | Usuário da câmera |
+| cam_password | string | Senha da câmera |
+| channel | int | Canal do NVR |
+| subtype | int | 0 = main stream, 1 = substream |
+| is_active | boolean | Câmera ativa/inativa |
+| is_recording | boolean | Gravação ativa via go2rtc |
 
-### Tabela `recordings`
+### `camera_user` (pivot de acesso)
 | Campo | Tipo | Descrição |
 |---|---|---|
-| id | bigint PK | |
-| camera_id | FK cameras | |
-| title | string | Título da gravação |
-| filename | string | Nome do arquivo em storage |
-| duration | integer | Duração em segundos |
-| recorded_at | datetime | Data/hora da gravação |
-
-### Tabela `camera_user` (pivot — controle de acesso)
-| Campo | Tipo | Descrição |
-|---|---|---|
-| camera_id | FK cameras | |
-| user_id | FK users | |
+| camera_id | FK | |
+| user_id | FK | |
 | granted_at | timestamp | Quando o acesso foi dado |
+| expires_at | timestamp | Expiração do acesso (null = permanente) |
 
-### Tabela `users` (padrão Laravel + campo role)
+### `subscriptions`
 | Campo | Tipo | Descrição |
 |---|---|---|
-| role | enum | `admin` ou `client` |
+| user_id | FK | |
+| plan | enum | `monthly` \| `quarterly` \| `annual` |
+| status | enum | `active` \| `suspended` \| `expired` \| `cancelled` |
+| starts_at | timestamp | |
+| expires_at | timestamp | |
+| granted_by | FK users | Admin que criou |
+| notes | text | Observação (ex: "Pagamento PIX") |
+
+### `access_logs`
+| Campo | Tipo | Descrição |
+|---|---|---|
+| user_id | FK | |
+| camera_id | FK nullable | |
+| event | enum | `login` \| `logout` \| `stream_start` \| `stream_stop` \| `access_denied` \| `subscription_expired` |
+| ip_address | string | |
+| user_agent | string | |
+| meta | json | Dados extras |
+
+### `active_sessions`
+| Campo | Tipo | Descrição |
+|---|---|---|
+| user_id | FK unique | Um registro por usuário |
+| ip_address | string | |
+| watching_camera_id | FK nullable | Câmera sendo assistida agora |
+| logged_in_at | timestamp | |
+| last_seen_at | timestamp | Atualizado pelo heartbeat a cada 30s |
+
+### `recordings`
+Gravações manuais (upload). Separado dos segmentos do go2rtc.
+
+### `recording_segments`
+Segmentos gerados automaticamente pelo go2rtc durante gravação contínua.
+
+### `clips`
+Clipes criados pelos clientes a partir do playback do DVR.
+Cada clipe tem `file_size`, `status` (pending/processing/ready/error) e respeita a `clips_quota_mb` do usuário.
+
+---
 
 ## Perfis de usuário
-- **admin** — acesso total: gerenciar câmeras, gravações, usuários e acessos
-- **client** — vê apenas as câmeras liberadas pelo admin
+
+| Perfil | Acesso |
+|---|---|
+| `admin` | Total: câmeras, gravações, usuários, assinaturas, logs |
+| `client` | Somente câmeras liberadas + assinatura ativa |
+
+---
+
+## Controle de acesso em camadas
+
+Ao acessar qualquer rota de cliente, o sistema verifica na ordem:
+
+1. **Autenticado?** → middleware `auth`
+2. **Assinatura ativa?** → middleware `subscription` (redireciona para `/assinatura-expirada`)
+3. **Câmera liberada?** → verificação no controller/model (`camera_user` + `expires_at`)
+4. **Acesso da câmera não expirou?** → `expires_at` do pivot
+
+---
+
+## Funcionalidades implementadas
+
+### Admin
+- CRUD de câmeras (com IP, porta, usuário/senha, canal, subtype)
+- CRUD de usuários com quota de clipes configurável
+- Controle de acesso por câmera com expiração opcional
+- Assinaturas: criar (mensal/trimestral/anual), renovar, suspender
+- Dashboard com: online agora, assinaturas vencendo em 7 dias, atividade recente, acessos negados
+- Logs de acesso com filtro por usuário/evento/data
+- Toggle de gravação contínua por câmera (via go2rtc)
+- Playback de DVR (Intelbras/Dahua) via RTSP com go2rtc
+
+### Cliente
+- Dashboard com câmeras ao vivo (WebRTC via go2rtc)
+- Grade configurável (1/2/3 colunas)
+- Botões sempre visíveis no mobile (Expandir + Gravações)
+- Playback de gravações do DVR
+- Criação de clipes com controle de quota por usuário
+- Download de clipes
+- Página de assinatura expirada com mensagem clara
+
+---
+
+## Scheduler (cron)
+
+```
+* * * * * cd /var/www/cameras && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Tarefas agendadas:
+- `clips:purge` — apaga clipes com mais de 2 dias (00:00)
+- `subscriptions:expire` — marca assinaturas vencidas como `expired` (00:05)
+
+---
+
+## Heartbeat
+
+Todos os layouts enviam `POST /heartbeat` a cada 30 segundos.
+Atualiza `active_sessions.last_seen_at` e `watching_camera_id`.
+Usuário é considerado online se `last_seen_at >= now - 2 minutos`.
+
+---
+
+## Integração go2rtc
+
+- go2rtc roda em `http://localhost:1984`
+- URL pública configurada em `config/cameras.php` → `go2rtc_public_url`
+- O browser faz WebRTC direto com go2rtc (evita CORS via proxy em `/go2rtc/webrtc`)
+- Streams nomeados por `cam{id}` (ex: `cam1`, `cam2`)
+- Playback DVR: stream temporário nomeado por timestamp
+
+---
+
+## Estrutura de controllers
+
+```
+app/Http/Controllers/
+├── Admin/
+│   ├── DashboardController    — painel admin com métricas
+│   ├── CameraController       — CRUD câmeras
+│   ├── UserController         — CRUD usuários + grant/revoke/quota
+│   ├── SubscriptionController — criar/renovar/suspender assinaturas
+│   ├── AccessLogController    — listagem de logs com filtros
+│   ├── RecordingController    — gravações manuais
+│   ├── SegmentController      — segmentos go2rtc
+│   └── PlaybackController     — playback DVR
+├── Client/
+│   ├── DashboardController    — câmeras do cliente
+│   ├── LiveController         — tela expandida ao vivo
+│   └── ClipController         — clipes: criar/listar/download/apagar
+├── Auth/                      — gerado pelo Breeze
+├── HeartbeatController        — POST /heartbeat
+└── Go2rtcProxyController      — proxy WebRTC
+```
+
+---
 
 ## Observações importantes
-- O projeto antigo estava em `C:\projetos\cameras` (PHP puro) — foi descartado
-- Laragon foi instalado em 21/05/2026 especificamente para este projeto
-- A sessão de chat foi iniciada em `c:\projetos\cameras` mas o projeto real é `C:\laragon\www\cameras`
-- Usar sempre o PHP do Laragon, nunca o do XAMPP (`C:\xampp\php\php.exe` = PHP 7.4, incompatível)
+
+- Usar sempre o PHP do Laragon (`C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe`), nunca o XAMPP (PHP 7.4)
+- Câmeras Intelbras: protocolo Dahua — RTSP em `rtsp://user:pass@ip:554/cam/realmonitor?channel=1&subtype=0`
+- DVR Intelbras usa porta HTTP 8000 para API CGI (mediaFileFind)
+- DDNS do NVR: `villatenis.ddns-intelbras.com.br`

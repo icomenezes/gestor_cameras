@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Apaga clipes com mais de 2 dias todo dia à meia-noite
 Schedule::command('clips:purge')->dailyAt('00:00');
+
+// Expira assinaturas vencidas todo dia à 00:05
+Schedule::command('subscriptions:expire')->dailyAt('00:05');

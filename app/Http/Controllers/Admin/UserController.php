@@ -13,15 +13,27 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::withCount('cameras')->latest()->paginate(20);
+        $users = User::where('role', 'client')
+            ->withCount('cameras')
+            ->with('activeSubscription', 'activeSession')
+            ->latest()
+            ->paginate(20);
+
         return view('admin.users.index', compact('users'));
     }
 
     public function show(User $user)
     {
-        $assigned = $user->cameras()->pluck('cameras.id')->toArray();
-        $cameras  = Camera::orderBy('name')->get();
-        return view('admin.users.show', compact('user', 'cameras', 'assigned'));
+        $assigned     = $user->cameras()->pluck('cameras.id')->toArray();
+        $cameras      = Camera::orderBy('name')->get();
+        $subscription = $user->activeSubscription;
+        $subscriptions = $user->subscriptions()->with('grantedBy')->limit(10)->get();
+        $recentLogs   = $user->accessLogs()->with('camera')->limit(20)->get();
+
+        return view('admin.users.show', compact(
+            'user', 'cameras', 'assigned',
+            'subscription', 'subscriptions', 'recentLogs'
+        ));
     }
 
     public function create()
@@ -34,7 +46,7 @@ class UserController extends Controller
         $request->validate([
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', Rules\Password::min(8)],
             'role'     => ['required', 'in:admin,client'],
         ]);
 
@@ -57,7 +69,9 @@ class UserController extends Controller
 
     public function grantAccess(Request $request, User $user, Camera $camera)
     {
-        $expiresAt = $request->expires_at ? \Carbon\Carbon::parse($request->expires_at)->endOfDay() : null;
+        $expiresAt = $request->expires_at
+            ? \Carbon\Carbon::parse($request->expires_at)->endOfDay()
+            : null;
 
         $user->cameras()->syncWithoutDetaching([
             $camera->id => [

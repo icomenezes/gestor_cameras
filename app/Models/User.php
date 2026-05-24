@@ -20,14 +20,23 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
     }
+
+    // ── Roles ────────────────────────────────────────────────────────────────
 
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
+
+    public function isClient(): bool
+    {
+        return $this->role === 'client';
+    }
+
+    // ── Câmeras ──────────────────────────────────────────────────────────────
 
     public function cameras()
     {
@@ -44,5 +53,42 @@ class User extends Authenticatable
                 $q->whereNull('camera_user.expires_at')
                   ->orWhere('camera_user.expires_at', '>', now());
             });
+    }
+
+    // ── Assinaturas ──────────────────────────────────────────────────────────
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class)->latest();
+    }
+
+    public function activeSubscription()
+    {
+        return $this->hasOne(Subscription::class)->active()->latest('expires_at');
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->activeSubscription()->exists();
+    }
+
+    // ── Sessão ativa ─────────────────────────────────────────────────────────
+
+    public function activeSession()
+    {
+        return $this->hasOne(ActiveSession::class);
+    }
+
+    public function isOnline(): bool
+    {
+        $session = $this->activeSession;
+        return $session !== null && $session->isOnline();
+    }
+
+    // ── Logs de acesso ───────────────────────────────────────────────────────
+
+    public function accessLogs()
+    {
+        return $this->hasMany(AccessLog::class)->latest('created_at');
     }
 }

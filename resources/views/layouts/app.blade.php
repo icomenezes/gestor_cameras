@@ -32,5 +32,20 @@
                 {{ $slot }}
             </main>
         </div>
+    @auth
+    <script>
+        // Heartbeat a cada 30s para manter sessão ativa no admin
+        setInterval(function () {
+            fetch('{{ route('heartbeat') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ camera_id: window._watchingCameraId || null }),
+            }).catch(function () {});
+        }, 30000);
+    </script>
+    @endauth
     </body>
 </html>

@@ -88,6 +88,96 @@ function fmtBytes(int $bytes): string {
 
     </div>
 
+    {{-- Online agora + Assinaturas vencendo --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        {{-- Online agora --}}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-800 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                <h3 class="text-sm font-semibold text-white">Online agora</h3>
+                <span class="ml-auto text-xs text-gray-500">{{ $onlineNow->count() }} usuário{{ $onlineNow->count() !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="divide-y divide-gray-800">
+                @forelse($onlineNow as $session)
+                <div class="flex items-center gap-3 px-5 py-3">
+                    <div class="w-7 h-7 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0">
+                        {{ strtoupper(substr($session->user->name, 0, 1)) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <a href="{{ route('admin.users.show', $session->user) }}"
+                           class="text-sm text-white hover:text-blue-400 transition-colors truncate block">
+                            {{ $session->user->name }}
+                        </a>
+                        <p class="text-xs text-gray-500">
+                            {{ $session->watchingCamera ? 'Assistindo: ' . $session->watchingCamera->name : 'No dashboard' }}
+                            · {{ $session->last_seen_at->diffForHumans() }}
+                        </p>
+                    </div>
+                    <span class="text-xs text-gray-600 font-mono shrink-0">{{ $session->ip_address }}</span>
+                </div>
+                @empty
+                <p class="px-5 py-6 text-sm text-gray-600 text-center">Nenhum usuário online agora.</p>
+                @endforelse
+            </div>
+        </div>
+
+        {{-- Assinaturas vencendo --}}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-white">Assinaturas vencendo (7 dias)</h3>
+                <a href="{{ route('admin.subscriptions.index') }}" class="text-xs text-blue-500 hover:text-blue-400 transition-colors">Ver todas →</a>
+            </div>
+            <div class="divide-y divide-gray-800">
+                @forelse($expiringSoon as $sub)
+                <div class="flex items-center gap-3 px-5 py-3">
+                    <div class="flex-1 min-w-0">
+                        <a href="{{ route('admin.users.show', $sub->user) }}"
+                           class="text-sm text-white hover:text-blue-400 transition-colors truncate block">
+                            {{ $sub->user->name }}
+                        </a>
+                        <p class="text-xs text-gray-500">{{ \App\Models\Subscription::planLabel($sub->plan) }}</p>
+                    </div>
+                    <span class="text-xs font-medium text-yellow-400 shrink-0">
+                        {{ $sub->expires_at->diffForHumans() }}
+                    </span>
+                </div>
+                @empty
+                <p class="px-5 py-6 text-sm text-gray-600 text-center">Nenhuma assinatura vencendo.</p>
+                @endforelse
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Acessos negados hoje + Log recente --}}
+    @if($deniedToday > 0 || $recentLogs->count())
+    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-white">Atividade recente</h3>
+            @if($deniedToday > 0)
+            <span class="px-2.5 py-1 rounded-full text-xs bg-red-900/40 text-red-400 border border-red-800">
+                {{ $deniedToday }} acesso{{ $deniedToday > 1 ? 's' : '' }} negado{{ $deniedToday > 1 ? 's' : '' }} hoje
+            </span>
+            @endif
+            <a href="{{ route('admin.access-logs.index') }}" class="text-xs text-blue-500 hover:text-blue-400 transition-colors">Ver todos →</a>
+        </div>
+        <div class="divide-y divide-gray-800">
+            @foreach($recentLogs as $log)
+            <div class="flex items-center gap-3 px-5 py-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-{{ $log->eventColor() }}-500 shrink-0"></span>
+                <span class="text-xs text-gray-300 flex-1">
+                    <span class="text-white">{{ $log->user->name }}</span>
+                    — {{ $log->eventLabel() }}
+                    @if($log->camera) · {{ $log->camera->name }} @endif
+                </span>
+                <span class="text-xs text-gray-600 shrink-0">{{ $log->created_at->format('H:i') }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Detalhamento do armazenamento --}}
     @if($storageBytes + $clipsBytes + $cacheBytes > 0)
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-5">

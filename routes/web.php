@@ -5,11 +5,13 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PlaybackController;
 use App\Http\Controllers\Admin\RecordingController;
 use App\Http\Controllers\Admin\SegmentController;
+use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Client\ClipController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\LiveController;
 use App\Http\Controllers\Go2rtcProxyController;
+use App\Http\Controllers\HeartbeatController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -359,13 +361,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('users', UserController::class)->only(['index', 'show', 'create', 'store', 'destroy']);
     Route::post('users/{user}/cameras/{camera}', [UserController::class, 'grantAccess'])->name('users.grant');
     Route::delete('users/{user}/cameras/{camera}', [UserController::class, 'revokeAccess'])->name('users.revoke');
+
+    // Assinaturas
+    Route::post('users/{user}/subscriptions', [SubscriptionController::class, 'store'])->name('users.subscriptions.store');
+    Route::post('users/{user}/subscriptions/renew', [SubscriptionController::class, 'renew'])->name('users.subscriptions.renew');
+    Route::post('users/{user}/subscriptions/suspend', [SubscriptionController::class, 'suspend'])->name('users.subscriptions.suspend');
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions.index');
+
+    // Logs de acesso
+    Route::get('access-logs', [\App\Http\Controllers\Admin\AccessLogController::class, 'index'])->name('access-logs.index');
 });
 
 // go2rtc proxy (evita CORS — browser chama mesma origem)
 Route::middleware('auth')->post('/go2rtc/webrtc', [Go2rtcProxyController::class, 'webrtc'])->name('go2rtc.webrtc');
 
+// Heartbeat — cliente envia a cada 30s para manter sessão ativa
+Route::middleware('auth')->post('/heartbeat', HeartbeatController::class)->name('heartbeat');
+
+// Assinatura expirada
+Route::middleware('auth')->get('/assinatura-expirada', function () {
+    return view('client.subscription-expired');
+})->name('subscription.expired');
+
 // Client routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'subscription'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/cameras/{camera}/live', [LiveController::class, 'show'])->name('cameras.live');
     Route::get('/cameras/{camera}/recordings', [LiveController::class, 'recordings'])->name('cameras.recordings');

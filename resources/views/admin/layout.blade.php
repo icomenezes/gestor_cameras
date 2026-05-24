@@ -65,6 +65,24 @@
                 </svg>
                 Usuários
             </a>
+            <a href="{{ route('admin.subscriptions.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.subscriptions.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                </svg>
+                Assinaturas
+            </a>
+            <a href="{{ route('admin.access-logs.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.access-logs.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Logs de Acesso
+            </a>
         </nav>
 
         <div class="px-3 py-4 border-t border-gray-800">
@@ -131,5 +149,18 @@
         </main>
     </div>
 @stack('scripts')
+<script>
+    // Heartbeat a cada 30s para manter sessão ativa no admin
+    setInterval(function () {
+        fetch('{{ route('heartbeat') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            },
+            body: JSON.stringify({ camera_id: null }),
+        }).catch(function () {});
+    }, 30000);
+</script>
 </body>
 </html>

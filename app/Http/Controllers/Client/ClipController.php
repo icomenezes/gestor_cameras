@@ -14,8 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class ClipController extends Controller
 {
-    const MAX_CLIPS = 10;
-    const MAX_BYTES = 838860800; // 800 MB
+    const MAX_CLIPS = 20;
 
     public function __construct(private DvrService $dvr) {}
 
@@ -47,9 +46,11 @@ class ClipController extends Controller
             ->latest()
             ->get();
 
+        $user      = Auth::user();
         $usedBytes = $clips->where('status', 'ready')->sum('file_size');
+        $quotaBytes = $user->clipsQuotaBytes();
 
-        return view('client.clips.index', compact('clips', 'usedBytes'));
+        return view('client.clips.index', compact('clips', 'usedBytes', 'quotaBytes'));
     }
 
     public function store(Request $request)
@@ -74,8 +75,8 @@ class ClipController extends Controller
         }
 
         $usedBytes = Clip::where('user_id', $user->id)->where('status', 'ready')->sum('file_size');
-        if ($usedBytes >= self::MAX_BYTES) {
-            return back()->withErrors(['quota' => "Limite de storage atingido (800 MB). Apague clipes para liberar espaço."]);
+        if ($usedBytes >= $user->clipsQuotaBytes()) {
+            return back()->withErrors(['quota' => "Limite de storage atingido ({$user->clips_quota_mb} MB). Apague clipes para liberar espaço."]);
         }
 
         $duration = $request->integer('duration', 900);

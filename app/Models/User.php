@@ -12,7 +12,14 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'clips_quota_mb'];
+
+    const QUOTA_OPTIONS = [100, 300, 500, 800];
+
+    public function clipsQuotaBytes(): int
+    {
+        return ($this->clips_quota_mb ?? 300) * 1048576;
+    }
 
     protected $hidden = ['password', 'remember_token'];
 

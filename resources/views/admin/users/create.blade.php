@@ -87,6 +87,21 @@
                 @enderror
             </div>
 
+            <div>
+                <label class="block text-xs font-medium text-gray-400 mb-2">Quota de storage de clipes</label>
+                <div class="grid grid-cols-4 gap-2">
+                    @foreach([100, 300, 500, 800] as $mb)
+                    <label class="flex flex-col items-center gap-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 cursor-pointer
+                                  has-[:checked]:border-blue-500 has-[:checked]:bg-blue-900/20 transition-colors text-center">
+                        <input type="radio" name="clips_quota_mb" value="{{ $mb }}"
+                               class="sr-only"
+                               {{ old('clips_quota_mb', 300) == $mb ? 'checked' : '' }}>
+                        <span class="text-sm font-semibold text-white">{{ $mb }} MB</span>
+                    </label>
+                    @endforeach
+                </div>
+            </div>
+
             <div class="flex items-center gap-3 pt-2">
                 <button type="submit"
                         class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-6 py-2.5 rounded-lg transition-colors">

@@ -9,22 +9,28 @@
             <h2 class="text-white font-semibold">Meus Clipes</h2>
             <p class="text-xs text-gray-500">
                 {{ $clips->where('status', 'ready')->count() }} clipes ·
-                {{ round($usedBytes / 1048576, 1) }} MB usados de 800 MB
+                {{ round($usedBytes / 1048576, 1) }} MB usados de {{ round($quotaBytes / 1048576) }} MB
             </p>
         </div>
         <a href="{{ route('dashboard') }}" class="text-sm text-gray-400 hover:text-white transition-colors">← Câmeras</a>
     </div>
 
     {{-- Barra de storage --}}
-    @php $pct = min(100, round($usedBytes / 838860800 * 100)) @endphp
+    @php
+        $quotaMb  = round($quotaBytes / 1048576);
+        $pctRaw   = min(100, $quotaBytes > 0 ? $usedBytes / $quotaBytes * 100 : 0);
+        $pct      = $pctRaw >= 1 ? round($pctRaw) : round($pctRaw, 1);
+        $pctLabel = ($pctRaw > 0 && $pctRaw < 1) ? '< 1%' : "{$pct}%";
+        $barWidth = max($pctRaw, $usedBytes > 0 ? 0.5 : 0);
+    @endphp
     <div class="bg-gray-900 rounded-lg border border-gray-800 p-4">
         <div class="flex justify-between text-xs text-gray-400 mb-2">
             <span>Storage usado</span>
-            <span>{{ $pct }}% de 800 MB</span>
+            <span>{{ $pctLabel }} de {{ $quotaMb }} MB</span>
         </div>
         <div class="w-full bg-gray-800 rounded-full h-2">
-            <div class="h-2 rounded-md-full transition-all {{ $pct >= 90 ? 'bg-red-500' : ($pct >= 70 ? 'bg-yellow-500' : 'bg-blue-500') }}"
-                 style="width:{{ $pct }}%"></div>
+            <div class="h-2 rounded-full transition-all {{ $pct >= 90 ? 'bg-red-500' : ($pct >= 70 ? 'bg-yellow-500' : 'bg-blue-500') }}"
+                 style="width:{{ number_format($barWidth, 2) }}%"></div>
         </div>
     </div>
 

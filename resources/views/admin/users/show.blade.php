@@ -123,6 +123,27 @@
         </div>
     </div>
 
+    {{-- Quota de clipes --}}
+    <div class="bg-gray-900 rounded-lg border border-gray-800 p-5">
+        <h3 class="font-semibold text-white text-sm mb-3">Quota de Storage (Clipes)</h3>
+        <form method="POST" action="{{ route('admin.users.quota', $user) }}" class="flex flex-wrap items-center gap-3">
+            @csrf @method('PATCH')
+            @foreach([100, 300, 500, 800] as $mb)
+            <label class="flex items-center gap-2 bg-gray-800 border rounded-lg px-4 py-2 cursor-pointer transition-colors
+                          {{ $user->clips_quota_mb == $mb ? 'border-blue-500 bg-blue-900/20 text-white' : 'border-gray-700 text-gray-400 hover:border-gray-500' }}">
+                <input type="radio" name="clips_quota_mb" value="{{ $mb }}"
+                       class="sr-only"
+                       {{ $user->clips_quota_mb == $mb ? 'checked' : '' }}>
+                <span class="text-sm font-medium">{{ $mb }} MB</span>
+            </label>
+            @endforeach
+            <button type="submit"
+                    class="px-4 py-2 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors">
+                Salvar
+            </button>
+        </form>
+    </div>
+
     {{-- Câmeras --}}
     <div class="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-800">

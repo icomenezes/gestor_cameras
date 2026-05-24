@@ -359,6 +359,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('playback/stop', [PlaybackController::class, 'stopStream'])->name('cameras.playback.stop');
     Route::resource('recordings', RecordingController::class)->except(['edit', 'update']);
     Route::resource('users', UserController::class)->only(['index', 'show', 'create', 'store', 'destroy']);
+    Route::patch('users/{user}/quota', [UserController::class, 'updateQuota'])->name('users.quota');
     Route::post('users/{user}/cameras/{camera}', [UserController::class, 'grantAccess'])->name('users.grant');
     Route::delete('users/{user}/cameras/{camera}', [UserController::class, 'revokeAccess'])->name('users.revoke');
 

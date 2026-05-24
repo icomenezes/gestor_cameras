@@ -54,50 +54,47 @@
              }"
              class="grid gap-2">
             @foreach($cameras as $camera)
-            <div class="bg-black rounded-lg overflow-hidden border border-gray-800 group relative"
+            <div class="bg-black rounded-lg overflow-hidden border border-gray-800"
                  :class="grid === '1' ? 'max-w-4xl mx-auto w-full' : ''">
 
-                {{-- Player ao vivo direto na grade --}}
+                {{-- Player --}}
                 <div class="aspect-video relative">
                     <x-camera-player :url="$camera->player_url" :autoplay="true" />
-
-                    {{-- Overlay com nome + botões (aparece no hover) --}}
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent
-                                opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    </div>
-                    <div class="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between
-                                opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div>
-                            <p class="text-white text-sm font-semibold drop-shadow">{{ $camera->name }}</p>
-                            <p class="text-gray-300 text-xs">{{ $camera->location }}</p>
-                        </div>
-                        <div class="flex gap-1.5 pointer-events-auto" x-data="{ going: '' }">
-                            <a href="{{ route('cameras.live', $camera) }}"
-                               @click="going = 'live'"
-                               class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-600/90 hover:bg-blue-500 text-white text-xs font-medium rounded-md backdrop-blur-sm transition-colors">
-                                <svg x-show="going === 'live'" class="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                                </svg>
-                                <span x-text="going === 'live' ? 'Abrindo...' : 'Expandir'"></span>
-                            </a>
-                            <a href="{{ route('cameras.playback', $camera) }}"
-                               @click="going = 'rec'"
-                               class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-800/90 hover:bg-gray-700 text-gray-200 text-xs font-medium rounded-md backdrop-blur-sm transition-colors">
-                                <svg x-show="going === 'rec'" class="w-3 h-3 animate-spin flex-shrink-0" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                                </svg>
-                                <span x-text="going === 'rec' ? 'Abrindo...' : 'Gravações'"></span>
-                            </a>
-                        </div>
-                    </div>
 
                     {{-- Badge AO VIVO --}}
                     <div class="absolute top-2 left-2 pointer-events-none">
                         <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-red-600/90 text-white font-medium">
                             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> AO VIVO
                         </span>
+                    </div>
+                </div>
+
+                {{-- Faixa inferior — sempre visível --}}
+                <div class="flex items-center justify-between px-3 py-2 bg-gray-900 border-t border-gray-800"
+                     x-data="{ going: '' }">
+                    <div class="min-w-0">
+                        <p class="text-white text-sm font-semibold truncate">{{ $camera->name }}</p>
+                        <p class="text-gray-500 text-xs truncate">{{ $camera->location }}</p>
+                    </div>
+                    <div class="flex gap-1.5 shrink-0 ml-2">
+                        <a href="{{ route('cameras.live', $camera) }}"
+                           @click="going = 'live'"
+                           class="flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-md transition-colors">
+                            <svg x-show="going === 'live'" class="w-3 h-3 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            <span x-text="going === 'live' ? '' : 'Expandir'">Expandir</span>
+                        </a>
+                        <a href="{{ route('cameras.playback', $camera) }}"
+                           @click="going = 'rec'"
+                           class="flex items-center gap-1 px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs font-medium rounded-md transition-colors">
+                            <svg x-show="going === 'rec'" class="w-3 h-3 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            </svg>
+                            <span x-text="going === 'rec' ? '' : 'Gravações'">Gravações</span>
+                        </a>
                     </div>
                 </div>
             </div>

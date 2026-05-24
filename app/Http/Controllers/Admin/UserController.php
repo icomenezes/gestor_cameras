@@ -44,17 +44,19 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Rules\Password::min(8)],
-            'role'     => ['required', 'in:admin,client'],
+            'name'           => ['required', 'string', 'max:255'],
+            'email'          => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password'       => ['required', 'confirmed', Rules\Password::min(8)],
+            'role'           => ['required', 'in:admin,client'],
+            'clips_quota_mb' => ['nullable', 'integer', 'in:100,300,500,800'],
         ]);
 
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'name'           => $request->name,
+            'email'          => $request->email,
+            'password'       => Hash::make($request->password),
+            'role'           => $request->role,
+            'clips_quota_mb' => $request->input('clips_quota_mb', 300),
         ]);
 
         return redirect()->route('admin.users.show', $user)
@@ -65,6 +67,17 @@ class UserController extends Controller
     {
         $user->delete();
         return redirect()->route('admin.users.index')->with('success', 'Usuário removido.');
+    }
+
+    public function updateQuota(Request $request, User $user)
+    {
+        $request->validate([
+            'clips_quota_mb' => ['required', 'integer', 'in:100,300,500,800'],
+        ]);
+
+        $user->update(['clips_quota_mb' => $request->clips_quota_mb]);
+
+        return back()->with('success', "Quota de clipes alterada para {$request->clips_quota_mb} MB.");
     }
 
     public function grantAccess(Request $request, User $user, Camera $camera)

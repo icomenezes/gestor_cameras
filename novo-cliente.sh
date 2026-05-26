@@ -169,33 +169,19 @@ for i in $(seq 1 60); do
 done
 
 ###############################################################################
-# Nginx vhost
+# Nginx vhost — fase 1: só HTTP para o Certbot conseguir validar
 ###############################################################################
 NGINX_CONF="/etc/nginx/sites-available/cameras_${SLUG}"
 
-echo "==> Criando vhost Nginx: $NGINX_CONF"
+echo "==> Criando vhost Nginx (HTTP): $NGINX_CONF"
 cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
     server_name ${DOMAIN};
 
-    # Certbot vai converter para HTTPS automaticamente
-    location / {
-        return 301 https://\$host\$request_uri;
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
     }
-}
-
-server {
-    listen 443 ssl;
-    server_name ${DOMAIN};
-
-    # Certificados serão preenchidos pelo Certbot
-    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
-    include             /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
-
-    client_max_body_size 500M;
 
     location / {
         proxy_pass         http://127.0.0.1:${HTTP_PORT};
@@ -203,7 +189,7 @@ server {
         proxy_set_header   Host \$host;
         proxy_set_header   X-Real-IP \$remote_addr;
         proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Proto https;
+        proxy_set_header   X-Forwarded-Proto http;
         proxy_read_timeout 300;
     }
 }
@@ -217,11 +203,55 @@ nginx -t && systemctl reload nginx
 ###############################################################################
 if [ "$SKIP_SSL" = false ]; then
     echo "==> Obtendo certificado SSL para $DOMAIN..."
-    certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos \
-        -m "ssl@trsystem.com.br" || {
+    if certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos \
+        -m "ssl@trsystem.com.br"; then
+
+        # Fase 2: substituir vhost por versão HTTPS completa
+        cat > "$NGINX_CONF" <<EOF2
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    return 301 https://\$host\$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    include             /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+
+    client_max_body_size 500M;
+
+    location /go2rtc/ {
+        proxy_pass         http://127.0.0.1:${HTTP_PORT}/go2rtc/;
+        proxy_http_version 1.1;
+        proxy_set_header   Upgrade \$http_upgrade;
+        proxy_set_header   Connection "upgrade";
+        proxy_set_header   Host \$host;
+        proxy_read_timeout 3600;
+    }
+
+    location / {
+        proxy_pass         http://127.0.0.1:${HTTP_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header   Host \$host;
+        proxy_set_header   X-Real-IP \$remote_addr;
+        proxy_set_header   X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto https;
+        proxy_read_timeout 300;
+    }
+}
+EOF2
+        nginx -t && systemctl reload nginx
+        echo "==> SSL configurado com sucesso."
+    else
         echo "AVISO: Certbot falhou. Verifique se o DNS $DOMAIN aponta para este servidor."
         echo "       Rode depois: certbot certonly --nginx -d $DOMAIN"
-    }
+        echo "       E então: ./novo-cliente.sh --slug $SLUG --domain $DOMAIN --email $ADMIN_EMAIL --password '...' (já existe, só o SSL falhou)"
+    fi
 fi
 
 ###############################################################################

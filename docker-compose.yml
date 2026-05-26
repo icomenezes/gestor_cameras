@@ -1,0 +1,68 @@
+# docker-compose.yml — Template base (desenvolvimento local)
+# Para produção, use o script novo-cliente.sh que gera um compose isolado por cliente.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cameras_app
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      APP_NAME: "Sistema de Câmeras"
+      APP_ENV: production
+      APP_KEY: ""                          # gerado no entrypoint
+      APP_DEBUG: "false"
+      APP_URL: "http://localhost:8080"
+      APP_LOCALE: pt_BR
+      APP_TIMEZONE: America/Sao_Paulo
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: cameras
+      DB_USERNAME: cameras
+      DB_PASSWORD: secret
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+
+      GO2RTC_URL: "http://127.0.0.1:1984"
+      GO2RTC_PUBLIC_URL: "http://localhost:8080/go2rtc"
+
+      FFMPEG_PATH: /usr/bin/ffmpeg
+
+      ADMIN_EMAIL: "admin@example.com"
+      ADMIN_PASSWORD: "changeme123"
+      ADMIN_NAME: "Administrador"
+    volumes:
+      - app_storage:/var/www/html/storage/app
+      - app_logs:/var/www/html/storage/logs
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    container_name: cameras_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: cameras
+      MYSQL_USER: cameras
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ucameras", "-psecret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  app_storage:
+  app_logs:
+  db_data:

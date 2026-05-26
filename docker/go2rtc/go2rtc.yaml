@@ -1,0 +1,5 @@
+api:
+  listen: "127.0.0.1:1984"
+
+# Streams will be added dynamically via API by the Laravel app
+streams: {}

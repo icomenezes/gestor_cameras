@@ -58,8 +58,6 @@ php artisan storage:link --no-interaction 2>/dev/null || true
 # Criar admin inicial se não existir
 php artisan db:seed --class=AdminSeeder --no-interaction 2>/dev/null || true
 
-# Sincronizar câmeras com go2rtc
-php artisan go2rtc:sync --no-interaction 2>/dev/null || true
 
 # Permissões
 chown -R www-data:www-data storage bootstrap/cache

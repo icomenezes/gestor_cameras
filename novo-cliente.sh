@@ -130,7 +130,7 @@ services:
     image: mysql:8.4
     container_name: cameras_${SLUG}_db
     restart: unless-stopped
-    command: --default-authentication-plugin=mysql_native_password
+    command: --mysql-native-password=ON
     environment:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}

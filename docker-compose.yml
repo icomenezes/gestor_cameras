@@ -27,7 +27,7 @@ services:
       DB_PASSWORD: secret
 
       SESSION_DRIVER: database
-      CACHE_STORE: database
+      CACHE_STORE: file
       QUEUE_CONNECTION: database
 
       GO2RTC_URL: "http://127.0.0.1:1984"

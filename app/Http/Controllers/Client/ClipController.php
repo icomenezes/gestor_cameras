@@ -112,6 +112,17 @@ class ClipController extends Controller
         return response()->download($path, $filename, ['Content-Type' => 'video/mp4']);
     }
 
+    public function preview(Clip $clip)
+    {
+        abort_if($clip->user_id !== Auth::id(), 403);
+        abort_if($clip->status !== 'ready', 404);
+
+        $path = storage_path('app/' . $clip->file_path);
+        abort_unless(file_exists($path), 404);
+
+        return response()->file($path, ['Content-Type' => 'video/mp4']);
+    }
+
     public function destroy(Clip $clip)
     {
         abort_if($clip->user_id !== Auth::id(), 403);

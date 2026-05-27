@@ -424,6 +424,7 @@ Route::middleware(['auth', 'subscription'])->group(function () {
     Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');
     Route::post('/clips', [ClipController::class, 'store'])->name('clips.store');
     Route::get('/clips/{clip}/download', [ClipController::class, 'download'])->name('clips.download');
+    Route::get('/clips/{clip}/preview',  [ClipController::class, 'preview'])->name('clips.preview');
     Route::delete('/clips/{clip}', [ClipController::class, 'destroy'])->name('clips.destroy');
 });
 

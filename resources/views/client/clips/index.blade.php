@@ -1,8 +1,9 @@
-﻿@extends('client.layout')
+@extends('client.layout')
 @section('title', 'Meus Clipes')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-5">
+<div class="max-w-5xl mx-auto space-y-5"
+     x-data="{ previewUrl: null, previewTitle: '' }">
 
     <div class="flex items-center justify-between">
         <div>
@@ -61,10 +62,14 @@
             @foreach($clips as $clip)
             <div class="bg-gray-900 rounded-lg border border-gray-800 p-4 flex items-center gap-4">
 
-                {{-- Ícone de status --}}
+                {{-- Botão de play (clicável se ready) --}}
                 <div class="flex-shrink-0 w-10 h-10 rounded flex items-center justify-center
-                    {{ $clip->status === 'ready' ? 'bg-green-900/40 text-green-400' :
-                       ($clip->status === 'failed' ? 'bg-red-900/40 text-red-400' : 'bg-blue-900/40 text-blue-400') }}">
+                    {{ $clip->status === 'ready' ? 'bg-green-900/40 text-green-400 cursor-pointer hover:bg-green-700/50 transition-colors' :
+                       ($clip->status === 'failed' ? 'bg-red-900/40 text-red-400' : 'bg-blue-900/40 text-blue-400') }}"
+                    @if($clip->status === 'ready')
+                        @click="previewUrl = '{{ route('clips.preview', $clip) }}'; previewTitle = '{{ addslashes($clip->title) }}'"
+                        title="Assistir clipe"
+                    @endif>
                     @if($clip->status === 'ready')
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     @elseif($clip->status === 'failed')
@@ -94,6 +99,11 @@
                 {{-- Ações --}}
                 <div class="flex items-center gap-2 flex-shrink-0">
                     @if($clip->status === 'ready')
+                        <button @click="previewUrl = '{{ route('clips.preview', $clip) }}'; previewTitle = '{{ addslashes($clip->title) }}'"
+                                class="flex items-center gap-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            Ver
+                        </button>
                         <a href="{{ route('clips.download', $clip) }}"
                            class="flex items-center gap-1.5 bg-green-700 hover:bg-green-600 text-white text-xs font-medium px-3 py-1.5 rounded-md transition-colors">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -113,6 +123,32 @@
             @endforeach
         </div>
     @endif
+
+    {{-- Modal de preview --}}
+    <div x-show="previewUrl"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80"
+         @click.self="previewUrl = null; previewTitle = ''">
+        <div class="bg-gray-900 rounded-xl border border-gray-700 w-full max-w-3xl shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                <span class="text-white text-sm font-medium" x-text="previewTitle"></span>
+                <button @click="previewUrl = null; previewTitle = ''"
+                        class="text-gray-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-4">
+                <video class="w-full rounded-lg bg-black aspect-video"
+                       :src="previewUrl"
+                       controls
+                       autoplay
+                       playsinline>
+                </video>
+            </div>
+        </div>
+    </div>
 
 </div>
 @endsection

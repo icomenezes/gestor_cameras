@@ -207,3 +207,5 @@ certbot certonly --nginx -d cameras.cliente.com.br
 | Disco | ~200MB + dados | 80GB total no servidor |
 
 Para escalar além de 15 clientes ou 4 streams simultâneos: adicionar outro servidor Hetzner.
+
+ chmod +x build-image.sh novo-cliente.sh atualizar-clientes.sh listar-clientes.sh remover-cliente.sh

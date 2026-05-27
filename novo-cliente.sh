@@ -6,10 +6,11 @@
 #                     --email admin@empresa.com.br --password SenhaSegura123
 #
 # O script:
-#   1. Cria /opt/cameras/<slug>/ com docker-compose isolado
-#   2. Sobe container (app + mysql) em portas auto-alocadas
-#   3. Gera config Nginx com SSL via Certbot
-#   4. Imprime credenciais de acesso
+#   1. Para e remove containers/volumes antigos do mesmo slug (se existirem)
+#   2. Cria /opt/cameras/<slug>/ com docker-compose isolado
+#   3. Sobe container (app + mysql) em portas auto-alocadas
+#   4. Gera config Nginx com SSL via Certbot
+#   5. Imprime credenciais de acesso
 
 set -euo pipefail
 
@@ -20,10 +21,9 @@ SLUG=""
 DOMAIN=""
 ADMIN_EMAIL=""
 ADMIN_PASSWORD=""
-SKIP_SSL=false
 
 usage() {
-    echo "Uso: $0 --slug <slug> --domain <dominio> --email <email> --password <senha> [--no-ssl]"
+    echo "Uso: $0 --slug <slug> --domain <dominio> --email <email> --password <senha>"
     exit 1
 }
 
@@ -33,14 +33,12 @@ while [[ $# -gt 0 ]]; do
         --domain)    DOMAIN="$2";         shift 2 ;;
         --email)     ADMIN_EMAIL="$2";    shift 2 ;;
         --password)  ADMIN_PASSWORD="$2"; shift 2 ;;
-        --no-ssl)    SKIP_SSL=true;       shift   ;;
         *)           usage ;;
     esac
 done
 
 [[ -z "$SLUG" || -z "$DOMAIN" || -z "$ADMIN_EMAIL" || -z "$ADMIN_PASSWORD" ]] && usage
 
-# Validar slug (apenas letras minúsculas, números e hífen)
 if ! [[ "$SLUG" =~ ^[a-z0-9-]+$ ]]; then
     echo "Erro: slug deve conter apenas letras minúsculas, números e hífen."
     exit 1
@@ -51,12 +49,27 @@ fi
 ###############################################################################
 BASE_DIR="/opt/cameras"
 CLIENT_DIR="$BASE_DIR/$SLUG"
-IMAGE_NAME="cameras-app:latest"   # imagem já construída no servidor
+IMAGE_NAME="cameras-app:latest"
 
-# Auto-alocar porta HTTP livre a partir de 8100
+###############################################################################
+# Remove instalação anterior do mesmo slug (se existir)
+###############################################################################
+if [ -f "$CLIENT_DIR/docker-compose.yml" ]; then
+    echo "==> Removendo instalação anterior de '$SLUG'..."
+    cd "$CLIENT_DIR"
+    docker compose down -v 2>/dev/null || true
+    cd /
+fi
+
+# Remove vhosts antigos deste slug
+rm -f "/etc/nginx/sites-enabled/cameras_${SLUG}"
+rm -f "/etc/nginx/sites-available/cameras_${SLUG}"
+
+###############################################################################
+# Auto-alocar portas livres
+###############################################################################
 find_free_port() {
-    local start=$1
-    local port=$start
+    local port=$1
     while ss -tlnp | grep -q ":$port "; do
         ((port++))
     done
@@ -64,7 +77,6 @@ find_free_port() {
 }
 
 HTTP_PORT=$(find_free_port 8100)
-DB_PORT=$(find_free_port 3380)
 
 DB_NAME="cameras_${SLUG//-/_}"
 DB_USER="cam_${SLUG//-/_}"
@@ -139,10 +151,10 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u${DB_USER}", "-p${DB_PASS}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASS}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 15
 
 volumes:
   app_storage:
@@ -160,21 +172,25 @@ echo "==> Subindo containers para $SLUG na porta $HTTP_PORT..."
 cd "$CLIENT_DIR"
 docker compose up -d
 
-echo "==> Aguardando app ficar pronto..."
+echo "==> Aguardando app ficar pronto (max 3 min)..."
 for i in $(seq 1 60); do
     if curl -sf "http://127.0.0.1:${HTTP_PORT}/login" > /dev/null 2>&1; then
-        echo "    App respondendo."
+        echo "    App respondendo OK."
         break
+    fi
+    if [ $i -eq 60 ]; then
+        echo "AVISO: App não respondeu em 3 minutos. Verifique: docker logs cameras_${SLUG}_app"
     fi
     sleep 3
 done
 
 ###############################################################################
-# Nginx vhost — fase 1: só HTTP para o Certbot conseguir validar
+# Nginx vhost com HTTPS
 ###############################################################################
 NGINX_CONF="/etc/nginx/sites-available/cameras_${SLUG}"
 
-echo "==> Criando vhost Nginx (HTTP): $NGINX_CONF"
+# Fase 1: HTTP temporário para Certbot validar
+echo "==> Criando vhost Nginx temporário (HTTP)..."
 cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
@@ -199,16 +215,17 @@ EOF
 ln -sf "$NGINX_CONF" "/etc/nginx/sites-enabled/cameras_${SLUG}"
 nginx -t && systemctl reload nginx
 
-###############################################################################
-# SSL com Certbot
-###############################################################################
-if [ "$SKIP_SSL" = false ]; then
-    echo "==> Obtendo certificado SSL para $DOMAIN..."
-    if certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos \
-        -m "ssl@trsystem.com.br"; then
+# Fase 2: SSL com Certbot
+echo "==> Obtendo/renovando certificado SSL para $DOMAIN..."
+if certbot certonly --webroot -w /var/www/html \
+    -d "$DOMAIN" --non-interactive --agree-tos \
+    -m "ssl@trsystem.com.br" 2>/dev/null \
+    || certbot certonly --nginx \
+    -d "$DOMAIN" --non-interactive --agree-tos \
+    -m "ssl@trsystem.com.br"; then
 
-        # Fase 2: substituir vhost por versão HTTPS completa
-        cat > "$NGINX_CONF" <<EOF2
+    # Fase 3: vhost HTTPS completo
+    cat > "$NGINX_CONF" <<EOF2
 server {
     listen 80;
     server_name ${DOMAIN};
@@ -246,13 +263,11 @@ server {
     }
 }
 EOF2
-        nginx -t && systemctl reload nginx
-        echo "==> SSL configurado com sucesso."
-    else
-        echo "AVISO: Certbot falhou. Verifique se o DNS $DOMAIN aponta para este servidor."
-        echo "       Rode depois: certbot certonly --nginx -d $DOMAIN"
-        echo "       E então: ./novo-cliente.sh --slug $SLUG --domain $DOMAIN --email $ADMIN_EMAIL --password '...' (já existe, só o SSL falhou)"
-    fi
+    nginx -t && systemctl reload nginx
+    echo "==> SSL configurado com sucesso."
+else
+    echo "AVISO: Certbot falhou. Verifique se DNS $DOMAIN aponta para este servidor."
+    echo "       Rode depois: certbot certonly --nginx -d $DOMAIN"
 fi
 
 ###############################################################################
@@ -276,7 +291,7 @@ User:  $DB_USER
 Pass:  $DB_PASS
 
 === Container ===
-App:  cameras_${SLUG}_app  (porta interna: $HTTP_PORT)
+App:  cameras_${SLUG}_app  (porta: $HTTP_PORT)
 DB:   cameras_${SLUG}_db
 EOF
 chmod 600 "$CREDS_FILE"
@@ -287,7 +302,7 @@ chmod 600 "$CREDS_FILE"
 echo ""
 echo "================================================================"
 echo "  Cliente '$SLUG' provisionado com sucesso!"
-echo "  URL:   https://$DOMAIN"
+echo "  URL:   https://$DOMAIN/login"
 echo "  Email: $ADMIN_EMAIL"
 echo "  Senha: $ADMIN_PASSWORD"
 echo "  Credenciais salvas em: $CREDS_FILE"

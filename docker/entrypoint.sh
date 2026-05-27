@@ -3,9 +3,9 @@ set -e
 
 APP_DIR=/var/www/html
 
-# Wait for MySQL
+# Wait for MySQL usando mysqladmin (compativel com MySQL 8 e MariaDB client)
 echo "Aguardando MySQL em ${DB_HOST}:${DB_PORT:-3306}..."
-until mariadb -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --skip-ssl -e "SELECT 1" > /dev/null 2>&1; do
+until mysqladmin ping -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; do
     sleep 2
 done
 echo "MySQL disponível."
@@ -18,7 +18,7 @@ if [ -z "$APP_KEY" ]; then
     echo "APP_KEY gerada: ${APP_KEY:0:10}..."
 fi
 
-# Gravar .env mínimo para o Laravel usar (config:cache vai ler daqui)
+# Gravar .env para o Laravel
 cat > "$APP_DIR/.env" << EOF
 APP_NAME="${APP_NAME:-Sistema de Câmeras}"
 APP_ENV=${APP_ENV:-production}
@@ -45,7 +45,7 @@ GO2RTC_PUBLIC_URL=${GO2RTC_PUBLIC_URL:-http://localhost/go2rtc}
 FFMPEG_PATH=${FFMPEG_PATH:-ffmpeg}
 
 ADMIN_EMAIL=${ADMIN_EMAIL:-admin@example.com}
-ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme123}
+ADMIN_PASSWORD=${ADMIN_PASSWORD:-Senha123}
 ADMIN_NAME=${ADMIN_NAME:-Administrador}
 EOF
 
@@ -53,11 +53,11 @@ php artisan config:cache --no-interaction
 php artisan route:cache  --no-interaction
 php artisan view:cache   --no-interaction
 php artisan migrate --force --no-interaction
+php artisan cache:clear  --no-interaction
 php artisan storage:link --no-interaction 2>/dev/null || true
 
-# Criar admin inicial se não existir
-php artisan db:seed --class=AdminSeeder --no-interaction 2>/dev/null || true
-
+# Criar admin inicial
+php artisan db:seed --class=AdminSeeder --force --no-interaction
 
 # Permissões
 chown -R www-data:www-data storage bootstrap/cache

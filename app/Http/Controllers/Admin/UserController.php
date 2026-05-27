@@ -3,14 +3,20 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AcessoCamerasConcedido;
+use App\Mail\BoasVindas;
 use App\Models\Camera;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
+    public function __construct(private NotificationService $notify) {}
+
     public function index()
     {
         $users = User::where('role', 'client')
@@ -49,6 +55,7 @@ class UserController extends Controller
             'password'       => ['required', 'confirmed', Rules\Password::min(8)],
             'role'           => ['required', 'in:admin,client'],
             'clips_quota_mb' => ['nullable', 'integer', 'in:100,300,500,800'],
+            'whatsapp'       => ['nullable', 'string', 'max:20'],
         ]);
 
         $user = User::create([
@@ -57,7 +64,11 @@ class UserController extends Controller
             'password'       => Hash::make($request->password),
             'role'           => $request->role,
             'clips_quota_mb' => $request->input('clips_quota_mb', 300),
+            'whatsapp'       => $request->whatsapp ? preg_replace('/\D/', '', $request->whatsapp) : null,
         ]);
+
+        Mail::to($user->email)->queue(new BoasVindas($user));
+        $this->notify->boasVindas($user);
 
         return redirect()->route('admin.users.show', $user)
             ->with('success', 'Usuário criado com sucesso.');
@@ -92,6 +103,8 @@ class UserController extends Controller
                 'expires_at' => $expiresAt,
             ]
         ]);
+
+        Mail::to($user->email)->queue(new AcessoCamerasConcedido($user, $camera));
 
         return back()->with('success', "Acesso à câmera \"{$camera->name}\" concedido.");
     }

@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AssinaturaAtivada;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class SubscriptionController extends Controller
 {
+    public function __construct(private NotificationService $notify) {}
+
     public function store(Request $request, User $user)
     {
         $request->validate([
@@ -24,7 +29,7 @@ class SubscriptionController extends Controller
         // Suspende assinaturas ativas anteriores
         $user->subscriptions()->where('status', 'active')->update(['status' => 'suspended']);
 
-        $user->subscriptions()->create([
+        $subscription = $user->subscriptions()->create([
             'plan'       => $plan,
             'status'     => 'active',
             'starts_at'  => $startsAt,
@@ -32,6 +37,9 @@ class SubscriptionController extends Controller
             'granted_by' => auth()->id(),
             'notes'      => $request->notes,
         ]);
+
+        Mail::to($user->email)->queue(new AssinaturaAtivada($user, $subscription));
+        $this->notify->assinaturaAtivada($user, Subscription::planLabel($plan), $expiresAt->format('d/m/Y'));
 
         return back()->with('success', 'Assinatura ' . Subscription::planLabel($plan) . ' criada até ' . $expiresAt->format('d/m/Y') . '.');
     }
@@ -50,7 +58,7 @@ class SubscriptionController extends Controller
 
         $expiresAt = $startsAt->copy()->addDays(Subscription::planDays($plan));
 
-        $user->subscriptions()->create([
+        $subscription = $user->subscriptions()->create([
             'plan'       => $plan,
             'status'     => 'active',
             'starts_at'  => $startsAt,
@@ -58,6 +66,9 @@ class SubscriptionController extends Controller
             'granted_by' => auth()->id(),
             'notes'      => 'Renovação',
         ]);
+
+        Mail::to($user->email)->queue(new AssinaturaAtivada($user, $subscription));
+        $this->notify->assinaturaAtivada($user, Subscription::planLabel($plan), $expiresAt->format('d/m/Y'));
 
         return back()->with('success', 'Assinatura renovada até ' . $expiresAt->format('d/m/Y') . '.');
     }

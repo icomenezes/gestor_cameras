@@ -1,15 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\CameraController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PlaybackController;
 use App\Http\Controllers\Admin\RecordingController;
 use App\Http\Controllers\Admin\SegmentController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\SnapshotController;
+use App\Http\Controllers\Admin\TenantSettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Client\ClipController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\LiveController;
+use App\Http\Controllers\Client\MosaicController;
 use App\Http\Controllers\Go2rtcProxyController;
 use App\Http\Controllers\HeartbeatController;
 use App\Http\Controllers\ProfileController;
@@ -347,6 +351,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
             . implode("\n", array_map(fn($k,$v) => "  $k => $v", array_keys($found), $found))
             . '</pre>';
     });
+    // Snapshots
+    Route::get('cameras/{camera}/snapshots', [SnapshotController::class, 'index'])->name('cameras.snapshots.index');
+    Route::post('cameras/{camera}/snapshots/capture', function (\App\Models\Camera $camera) {
+        \Illuminate\Support\Facades\Artisan::call('cameras:snapshot', ['camera_id' => $camera->id]);
+        return back()->with('success', 'Snapshot capturado.');
+    })->name('cameras.snapshots.capture');
+    Route::patch('cameras/{camera}/snapshots/interval', [SnapshotController::class, 'updateInterval'])->name('cameras.snapshots.interval');
+    Route::delete('cameras/{camera}/snapshots/{snapshot}', [SnapshotController::class, 'destroy'])->name('cameras.snapshots.destroy');
+
     Route::get('cameras/{camera}/segments', [SegmentController::class, 'index'])->name('cameras.segments.index');
     Route::get('cameras/{camera}/segments/{segment}/stream', [SegmentController::class, 'stream'])->name('cameras.segments.stream');
     Route::post('cameras/{camera}/segments/{segment}/clip', [SegmentController::class, 'clip'])->name('cameras.segments.clip');
@@ -371,6 +384,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Logs de acesso
     Route::get('access-logs', [\App\Http\Controllers\Admin\AccessLogController::class, 'index'])->name('access-logs.index');
+
+    // Analytics
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+
+    // Eventos de câmera (alertas de movimento)
+    Route::get('camera-events', [\App\Http\Controllers\Admin\CameraEventController::class, 'index'])->name('camera-events.index');
+
+    // Configurações do tenant (white-label)
+    Route::get('settings', [TenantSettingController::class, 'edit'])->name('settings.edit');
+    Route::patch('settings', [TenantSettingController::class, 'update'])->name('settings.update');
 });
 
 // go2rtc proxy (evita CORS — browser chama mesma origem)
@@ -393,11 +416,29 @@ Route::middleware(['auth', 'subscription'])->group(function () {
     Route::post('/cameras/{camera}/playback/stream', [ClipController::class, 'stream'])->name('cameras.playback.stream.client');
     Route::post('/playback/stop', [\App\Http\Controllers\Admin\PlaybackController::class, 'stopStream'])->name('playback.stop.client');
 
+    // Mosaico multi-câmera
+    Route::get('/mosaico', [MosaicController::class, 'show'])->name('mosaic.show');
+    Route::post('/mosaico/salvar', [MosaicController::class, 'save'])->name('mosaic.save');
+
     // Clipes do usuário
     Route::get('/clips', [ClipController::class, 'index'])->name('clips.index');
     Route::post('/clips', [ClipController::class, 'store'])->name('clips.store');
     Route::get('/clips/{clip}/download', [ClipController::class, 'download'])->name('clips.download');
     Route::delete('/clips/{clip}', [ClipController::class, 'destroy'])->name('clips.destroy');
+});
+
+// Webhook público para eventos de câmera (motion detection via ONVIF/sistemas externos)
+Route::post('/webhook/camera-event', [\App\Http\Controllers\Admin\CameraEventController::class, 'webhook'])
+    ->name('webhook.camera-event');
+
+// Super-Admin
+Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmin'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'index'])->name('tenants.index');
+    Route::get('/tenants/create', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'create'])->name('tenants.create');
+    Route::post('/tenants', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'store'])->name('tenants.store');
+    Route::post('/tenants/{tenant}/suspend', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'suspend'])->name('tenants.suspend');
+    Route::post('/tenants/{tenant}/activate', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'activate'])->name('tenants.activate');
+    Route::post('/tenants/{tenant}/sync', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'sync'])->name('tenants.sync');
 });
 
 // Profile

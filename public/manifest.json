@@ -1,0 +1,26 @@
+{
+    "name": "Sistema de Câmeras",
+    "short_name": "Câmeras",
+    "description": "Acesse suas câmeras de segurança ao vivo",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#030712",
+    "theme_color": "#1e40af",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "categories": ["security", "utilities"]
+}

@@ -12,7 +12,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'clips_quota_mb'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'clips_quota_mb', 'whatsapp'];
 
     const QUOTA_OPTIONS = [100, 300, 500, 800];
 

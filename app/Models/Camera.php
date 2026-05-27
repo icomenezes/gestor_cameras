@@ -12,7 +12,7 @@ class Camera extends Model
     protected $fillable = [
         'name', 'location', 'stream_url', 'is_active',
         'ip', 'port', 'http_port', 'cam_username', 'cam_password', 'channel', 'subtype',
-        'is_recording',
+        'is_recording', 'snapshot_interval_minutes',
     ];
 
     protected $casts = [
@@ -76,5 +76,15 @@ class Camera extends Model
     public function recordings()
     {
         return $this->hasMany(Recording::class);
+    }
+
+    public function snapshots()
+    {
+        return $this->hasMany(Snapshot::class)->latest('captured_at');
+    }
+
+    public function rtspUrl(): string
+    {
+        return $this->rtsp_url;
     }
 }

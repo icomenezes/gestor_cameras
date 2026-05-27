@@ -4,8 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') — Sistema de Câmeras</title>
+    <title>@yield('title', 'Admin') — {{ $tenant->company_name ?? config('app.name') }}</title>
+    @if($tenant->favicon_url ?? false)
+        <link rel="icon" href="{{ $tenant->favicon_url }}">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        :root {
+            --color-primary: {{ $tenant->primary_color ?? '#1e40af' }};
+            --color-accent:  {{ $tenant->accent_color ?? '#3b82f6' }};
+        }
+    </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex" x-data="{ sidebarOpen: false }">
 
@@ -15,13 +24,17 @@
            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
 
         <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-800">
-            <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 10l4.553-2.069A1 1 0 0121 8.871v6.258a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
-            </div>
-            <span class="font-semibold text-white text-sm">Sistema de Câmeras</span>
+            @if($tenant->logo_url ?? false)
+                <img src="{{ $tenant->logo_url }}" alt="{{ $tenant->company_name }}" class="h-8 w-auto object-contain">
+            @else
+                <div class="w-8 h-8 rounded flex items-center justify-center" style="background-color: var(--color-primary)">
+                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 10l4.553-2.069A1 1 0 0121 8.871v6.258a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            @endif
+            <span class="font-semibold text-white text-sm">{{ $tenant->company_name ?? config('app.name') }}</span>
         </div>
 
         <div class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-4 px-6">
@@ -74,6 +87,24 @@
                 </svg>
                 Assinaturas
             </a>
+            <a href="{{ route('admin.camera-events.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.camera-events.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                Alertas
+            </a>
+            <a href="{{ route('admin.analytics.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.analytics.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Analytics
+            </a>
             <a href="{{ route('admin.access-logs.index') }}"
                class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
                       {{ request()->routeIs('admin.access-logs.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
@@ -82,6 +113,16 @@
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
                 Logs de Acesso
+            </a>
+            <a href="{{ route('admin.settings.edit') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      {{ request()->routeIs('admin.settings.*') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Configurações
             </a>
         </nav>
 

@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('tenant_settings', function (Blueprint $table) {
+            $table->id();
+            $table->string('company_name')->default('Sistema de Câmeras');
+            $table->string('logo_url')->nullable();
+            $table->string('favicon_url')->nullable();
+            $table->string('primary_color', 7)->default('#1e40af');
+            $table->string('accent_color', 7)->default('#3b82f6');
+            $table->string('support_email')->nullable();
+            $table->string('support_whatsapp')->nullable();
+            $table->timestamps();
+        });
+
+        // Insere configuração padrão
+        DB::table('tenant_settings')->insert([
+            'company_name'  => config('app.name', 'Sistema de Câmeras'),
+            'primary_color' => '#1e40af',
+            'accent_color'  => '#3b82f6',
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ]);
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('tenant_settings');
+    }
+};

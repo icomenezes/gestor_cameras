@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# Garante permissões de execução nos scripts
+chmod +x build-image.sh novo-cliente.sh atualizar-clientes.sh listar-clientes.sh remover-cliente.sh
+
 echo "==> Construindo imagem cameras-app:latest..."
 docker build -t cameras-app:latest .
 

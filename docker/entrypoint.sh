@@ -5,7 +5,7 @@ APP_DIR=/var/www/html
 
 # Wait for MySQL usando mysqladmin (compativel com MySQL 8 e MariaDB client)
 echo "Aguardando MySQL em ${DB_HOST}:${DB_PORT:-3306}..."
-until mysqladmin ping -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; do
+until mariadb-admin ping -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; do
     sleep 2
 done
 echo "MySQL disponível."

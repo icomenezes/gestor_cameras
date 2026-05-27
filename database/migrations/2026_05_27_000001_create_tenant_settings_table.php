@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->string('accent_color', 7)->default('#3b82f6');
             $table->string('support_email')->nullable();
             $table->string('support_whatsapp')->nullable();
+            $table->boolean('whatsapp_enabled')->default(false);
             $table->timestamps();
         });
 

@@ -12,9 +12,11 @@ return new class extends Migration
             $table->string('whatsapp', 20)->nullable()->after('email');
         });
 
-        Schema::table('tenant_settings', function (Blueprint $table) {
-            $table->boolean('whatsapp_enabled')->default(false)->after('support_whatsapp');
-        });
+        if (!Schema::hasColumn('tenant_settings', 'whatsapp_enabled')) {
+            Schema::table('tenant_settings', function (Blueprint $table) {
+                $table->boolean('whatsapp_enabled')->default(false)->after('support_whatsapp');
+            });
+        }
     }
 
     public function down(): void
@@ -22,8 +24,11 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('whatsapp');
         });
-        Schema::table('tenant_settings', function (Blueprint $table) {
-            $table->dropColumn('whatsapp_enabled');
-        });
+
+        if (Schema::hasColumn('tenant_settings', 'whatsapp_enabled')) {
+            Schema::table('tenant_settings', function (Blueprint $table) {
+                $table->dropColumn('whatsapp_enabled');
+            });
+        }
     }
 };

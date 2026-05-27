@@ -14,6 +14,10 @@ echo "MySQL disponível."
 
 cd "$APP_DIR"
 
+# Permissões antes de qualquer artisan
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
 # Gerar APP_KEY se não foi fornecida via env
 if [ -z "$APP_KEY" ]; then
     export APP_KEY=$(php artisan key:generate --show --no-interaction)
@@ -61,7 +65,7 @@ php artisan storage:link --no-interaction 2>/dev/null || true
 # Criar admin inicial
 php artisan db:seed --class=AdminSeeder --force --no-interaction
 
-# Permissões
+# Permissões finais
 chown -R www-data:www-data storage bootstrap/cache
 
 # Iniciar todos os serviços

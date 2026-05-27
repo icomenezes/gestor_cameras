@@ -13,7 +13,9 @@ class TenantSetting extends Model
         'support_email', 'support_whatsapp', 'whatsapp_enabled',
     ];
 
-    protected $casts = ['whatsapp_enabled' => 'boolean'];
+    protected $casts = [
+        'whatsapp_enabled' => 'boolean',
+    ];
 
     public static function current(): self
     {

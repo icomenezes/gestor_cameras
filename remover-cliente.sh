@@ -5,7 +5,6 @@
 #
 # Por padrão mantém os volumes (dados do cliente).
 # Use --apagar-dados para remover também os volumes Docker.
-
 set -euo pipefail
 
 SLUG=""

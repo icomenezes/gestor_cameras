@@ -17,3 +17,4 @@ for CLIENT_DIR in "$BASE_DIR"/*/; do
 
     printf "%-20s %-40s %-10s\n" "$SLUG" "$DOMAIN" "$STATUS"
 done
+

@@ -15,3 +15,4 @@ docker build -t cameras-app:latest .
 
 echo "==> Imagem construída. Para atualizar os clientes:"
 echo "    ./atualizar-clientes.sh"
+

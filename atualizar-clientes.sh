@@ -30,3 +30,4 @@ done
 
 echo ""
 echo "Todos os clientes atualizados."
+

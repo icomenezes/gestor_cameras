@@ -74,7 +74,6 @@ find_free_port() {
     done
     echo $port
 }
-
 HTTP_PORT=$(find_free_port 8100)
 
 DB_NAME="cameras_${SLUG//-/_}"

@@ -19,6 +19,11 @@ class TenantSetting extends Model
 
     public static function current(): self
     {
+        $cached = Cache::get('tenant_settings');
+        if (!$cached instanceof self) {
+            Cache::forget('tenant_settings');
+        }
+
         return Cache::remember('tenant_settings', 300, fn () => self::firstOrCreate([], [
             'company_name'  => config('app.name'),
             'primary_color' => '#1e40af',

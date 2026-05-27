@@ -1,3 +1,4 @@
+<!-- fullWidth: false tocVisible: false tableWrap: true -->
 # Infraestrutura Docker — Sistema de Câmeras SaaS
 
 Cada cliente roda em um container isolado com banco de dados próprio, go2rtc próprio e domínio próprio.
@@ -32,14 +33,18 @@ Cada cliente roda em um container isolado com banco de dados próprio, go2rtc pr
 
 ## Adicionar novo cliente
 
-### 1. Apontar DNS
+### 1\. Apontar DNS
+
 No painel do domínio, criar registro A:
+
 ```
 cameras.cliente.com.br  →  A  →  49.13.237.163
 ```
+
 Aguardar propagação (5–30 min).
 
-### 2. Rodar o script
+### 2\. Rodar o script
+
 ```bash
 cd /var/www/cameras
 ./novo-cliente.sh \
@@ -50,13 +55,16 @@ cd /var/www/cameras
 ```
 
 O script faz automaticamente:
+
 - Cria container isolado (app + MySQL) em porta auto-alocada
 - Configura vhost Nginx
 - Obtém certificado SSL via Certbot
 - Salva credenciais em `/opt/cameras/<slug>/credenciais.txt`
 
-### 3. Criar admin (se necessário)
+### 3\. Criar admin (se necessário)
+
 Se o login não funcionar com as credenciais do script:
+
 ```bash
 docker exec cameras_<slug>_app php /var/www/html/artisan tinker --execute="
 App\Models\User::updateOrCreate(
@@ -86,40 +94,46 @@ git pull
 ./atualizar-clientes.sh
 ```
 
-> O `atualizar-clientes.sh` reinicia os containers sequencialmente — cada cliente fica fora por ~15 segundos durante o restart.
+> O `atualizar-clientes.sh` reinicia os containers sequencialmente — cada cliente fica fora por \~15 segundos durante o restart.
 
 ---
 
 ## Comandos úteis
 
 ### Listar todos os clientes e status
+
 ```bash
 ./listar-clientes.sh
 ```
 
 ### Ver logs de um cliente
+
 ```bash
 docker logs -f cameras_<slug>_app
 ```
 
 ### Reiniciar um cliente
+
 ```bash
 cd /opt/cameras/<slug>
 docker compose restart app
 ```
 
 ### Sincronizar câmeras com go2rtc (após cadastrar câmeras no admin)
+
 ```bash
 docker exec cameras_<slug>_app php /var/www/html/artisan go2rtc:sync
 ```
 
 ### Acessar banco de dados de um cliente
+
 ```bash
 docker exec -it cameras_<slug>_db mysql -uroot -p
 # senha: ver /opt/cameras/<slug>/credenciais.txt
 ```
 
 ### Ver credenciais de um cliente
+
 ```bash
 cat /opt/cameras/<slug>/credenciais.txt
 ```
@@ -141,6 +155,7 @@ cat /opt/cameras/<slug>/credenciais.txt
 ## Rebuild manual da imagem
 
 Necessário quando há mudanças em:
+
 - `Dockerfile`
 - `docker/` (nginx, supervisor, entrypoint)
 - Dependências PHP (`composer.json`) ou JS (`package.json`)
@@ -159,6 +174,7 @@ git pull
 ## Troubleshooting
 
 ### Container não sobe — aguardando MySQL
+
 ```bash
 docker logs cameras_<slug>_db
 # Se der erro de autenticação:
@@ -168,6 +184,7 @@ docker restart cameras_<slug>_app
 ```
 
 ### WebRTC não funciona (câmeras sem imagem)
+
 ```bash
 # Verificar se streams estão cadastrados
 docker exec cameras_<slug>_app wget -qO- http://127.0.0.1:1984/api/streams
@@ -177,6 +194,7 @@ docker exec cameras_<slug>_app php /var/www/html/artisan go2rtc:sync
 ```
 
 ### 502 Bad Gateway
+
 ```bash
 # Verificar se container está rodando
 docker ps | grep <slug>
@@ -186,6 +204,7 @@ docker logs --tail 50 cameras_<slug>_app
 ```
 
 ### SSL falhou durante novo-cliente.sh
+
 ```bash
 # Rodar certbot manualmente após DNS propagar
 certbot certonly --nginx -d cameras.cliente.com.br
@@ -199,13 +218,13 @@ certbot certonly --nginx -d cameras.cliente.com.br
 
 ## Capacidade estimada (Hetzner CX32 — 4 vCPU / 8GB RAM)
 
-| Recurso | Por cliente idle | Limite prático |
-|---|---|---|
-| RAM | ~500MB (app + MySQL) | 10–15 clientes |
-| CPU | < 5% | Ilimitado em idle |
-| CPU (stream ativo) | ~25% por stream | 3–4 streams simultâneos |
-| Disco | ~200MB + dados | 80GB total no servidor |
+| Recurso            | Por cliente idle     | Limite prático          |
+| ------------------ | -------------------- | ----------------------- |
+| RAM                | \~500MB (app + MySQL) | 10–15 clientes          |
+| CPU                | < 5%                 | Ilimitado em idle       |
+| CPU (stream ativo) | \~25% por stream     | 3–4 streams simultâneos |
+| Disco              | \~200MB + dados      | 80GB total no servidor  |
 
 Para escalar além de 15 clientes ou 4 streams simultâneos: adicionar outro servidor Hetzner.
 
- chmod +x build-image.sh novo-cliente.sh atualizar-clientes.sh listar-clientes.sh remover-cliente.sh
+chmod +x build-image.sh novo-cliente.sh atualizar-clientes.sh listar-clientes.sh remover-cliente.sh

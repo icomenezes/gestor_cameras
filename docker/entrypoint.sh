@@ -14,6 +14,14 @@ echo "MySQL disponível."
 
 cd "$APP_DIR"
 
+# Garante estrutura de diretórios que o git não versiona (conteúdo ignorado)
+mkdir -p storage/framework/cache/data \
+         storage/framework/sessions \
+         storage/framework/views \
+         storage/logs \
+         storage/app/public \
+         bootstrap/cache
+
 # Permissões antes de qualquer artisan
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
@@ -55,7 +63,7 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD:-Senha123}
 ADMIN_NAME=${ADMIN_NAME:-Administrador}
 EOF
 
-php artisan cache:clear  --no-interaction
+php artisan cache:clear  --no-interaction || true
 php artisan config:cache --no-interaction
 php artisan route:cache  --no-interaction
 php artisan view:cache   --no-interaction

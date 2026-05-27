@@ -51,11 +51,11 @@ ADMIN_PASSWORD=${ADMIN_PASSWORD:-Senha123}
 ADMIN_NAME=${ADMIN_NAME:-Administrador}
 EOF
 
+php artisan cache:clear  --no-interaction
 php artisan config:cache --no-interaction
 php artisan route:cache  --no-interaction
 php artisan view:cache   --no-interaction
 php artisan migrate --force --no-interaction
-php artisan cache:clear  --no-interaction
 php artisan storage:link --no-interaction 2>/dev/null || true
 
 # Criar admin inicial

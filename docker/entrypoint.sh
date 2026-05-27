@@ -3,11 +3,13 @@ set -e
 
 APP_DIR=/var/www/html
 
-# Wait for MySQL usando mysqladmin (compativel com MySQL 8 e MariaDB client)
+# Wait for MySQL — testa conectividade TCP via nc (disponível no busybox/Alpine)
 echo "Aguardando MySQL em ${DB_HOST}:${DB_PORT:-3306}..."
-until mariadb-admin ping -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; do
+until nc -z "${DB_HOST}" "${DB_PORT:-3306}" 2>/dev/null; do
     sleep 2
 done
+# Aguarda MySQL terminar de criar usuários após aceitar conexões TCP
+sleep 5
 echo "MySQL disponível."
 
 cd "$APP_DIR"

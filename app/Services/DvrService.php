@@ -91,7 +91,7 @@ class DvrService
      * Adiciona um stream de playback ao go2rtc usando o caminho real do arquivo .dav.
      * Formato: rtsp://user:pass@ip:554//mnt/dvr/YYYY-MM-DD/...arquivo.dav
      */
-    public function addPlaybackStream(Camera $camera, Carbon $startTime): string
+    public function addPlaybackStream(Camera $camera, Carbon $startTime): array
     {
         $streamName = 'pb_' . $camera->streamKey() . '_' . $startTime->format('YmdHis');
 
@@ -103,6 +103,10 @@ class DvrService
         // Prefere o arquivo que cobre exatamente startTime; se não, pega o mais próximo
         $best = $files->first(fn($f) => $f['start']->lte($startTime) && $f['end']->gte($startTime))
              ?? $files->first();
+
+        // file_start = quando o arquivo de fato começa no DVR (base para o video.currentTime)
+        // Se não há arquivo, usamos startTime pois buildPlaybackRtsp busca exatamente esse horário
+        $fileStart = $best ? $best['start'] : $startTime;
 
         $rtspUrl = $best
             ? $this->buildPlaybackRtspFromFile($camera, $best['file_path'])
@@ -116,7 +120,10 @@ class DvrService
             Log::warning("DvrService: falhou ao adicionar stream de playback: {$e->getMessage()}");
         }
 
-        return $streamName;
+        return [
+            'stream_name' => $streamName,
+            'file_start'  => $fileStart,
+        ];
     }
 
     /**

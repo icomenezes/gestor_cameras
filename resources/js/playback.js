@@ -7,6 +7,7 @@ export default function registerPlayback(_Alpine) {
         playingLabel: '',
         error: '',
         streamName: null,
+        fileStart: null,   // horário real do início do arquivo DVR (base para currentDvrTime)
         pc: null,
 
         // gravação ao vivo
@@ -46,9 +47,10 @@ export default function registerPlayback(_Alpine) {
                 }
 
                 const data = await resp.json();
-                this.streamName  = data.stream_name;
+                this.streamName   = data.stream_name;
+                this.fileStart    = data.file_start ? new Date(data.file_start) : new Date(this.selectedDatetime);
                 this.playingLabel = new Date(this.selectedDatetime).toLocaleString('pt-BR');
-                this.playing     = true;
+                this.playing      = true;
 
                 this.$nextTick(() => this.connectWebRTC(data.webrtc_url));
 
@@ -114,10 +116,10 @@ export default function registerPlayback(_Alpine) {
             }
         },
 
-        // Retorna o timestamp DVR atual (Date) baseado no horário inicial + currentTime do vídeo
+        // Retorna o timestamp DVR atual baseado no início REAL do arquivo + currentTime do vídeo
         currentDvrTime() {
-            if (!this.selectedDatetime) return null;
-            const base    = new Date(this.selectedDatetime).getTime();
+            if (!this.fileStart) return null;
+            const base    = this.fileStart.getTime();
             const elapsed = Math.floor(this.$refs.video?.currentTime ?? 0) * 1000;
             return new Date(base + elapsed);
         },

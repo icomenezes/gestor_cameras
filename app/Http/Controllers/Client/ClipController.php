@@ -28,14 +28,15 @@ class ClipController extends Controller
         if (!$access && !$user->isAdmin()) abort(403);
         if ($access && $access->pivot->expires_at && now()->gt($access->pivot->expires_at)) abort(403, 'Acesso expirado.');
 
-        $startTime  = Carbon::parse($request->datetime);
-        $streamName = $this->dvr->addPlaybackStream($camera, $startTime);
+        $startTime = Carbon::parse($request->datetime);
+        $stream    = $this->dvr->addPlaybackStream($camera, $startTime);
 
         $go2rtcBase = rtrim(config('cameras.go2rtc_public_url', config('cameras.go2rtc_url')), '/');
 
         return response()->json([
-            'stream_name' => $streamName,
-            'webrtc_url'  => "{$go2rtcBase}/api/webrtc?src={$streamName}",
+            'stream_name' => $stream['stream_name'],
+            'file_start'  => $stream['file_start']->toIso8601String(),
+            'webrtc_url'  => "{$go2rtcBase}/api/webrtc?src={$stream['stream_name']}",
         ]);
     }
 

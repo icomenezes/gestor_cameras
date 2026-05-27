@@ -5,7 +5,7 @@ APP_DIR=/var/www/html
 
 # Wait for MySQL
 echo "Aguardando MySQL em ${DB_HOST}:${DB_PORT:-3306}..."
-until mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --skip-ssl -e "SELECT 1" > /dev/null 2>&1; do
+until mariadb -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --skip-ssl -e "SELECT 1" > /dev/null 2>&1; do
     sleep 2
 done
 echo "MySQL disponível."

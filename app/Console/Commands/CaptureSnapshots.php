@@ -22,14 +22,14 @@ class CaptureSnapshots extends Command
         if ($id = $this->argument('camera_id')) {
             $query->where('id', $id);
         } else {
-            // Filtra câmeras cujo intervalo já passou desde o último snapshot
+            // Câmeras sem snapshot algum, ou cujo último snapshot é mais antigo que o intervalo
             $query->where(function ($q) {
                 $q->whereDoesntHave('snapshots')
                   ->orWhereHas('snapshots', function ($sq) {
-                      $sq->where('captured_at', '>=',
-                          now()->subMinutes(\DB::raw('cameras.snapshot_interval_minutes'))
+                      $sq->whereRaw(
+                          'captured_at < DATE_SUB(NOW(), INTERVAL cameras.snapshot_interval_minutes MINUTE)'
                       );
-                  }, '=', 0);
+                  });
             });
         }
 

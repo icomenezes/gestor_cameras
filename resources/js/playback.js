@@ -8,6 +8,7 @@ export default function registerPlayback(_Alpine) {
         error: '',
         streamName: null,
         fileStart: null,   // horário real do início do arquivo DVR (base para currentDvrTime)
+        speed: 1,
         pc: null,
 
         // gravação ao vivo
@@ -124,7 +125,13 @@ export default function registerPlayback(_Alpine) {
             return new Date(base + elapsed);
         },
 
+        setSpeed(s) {
+            this.speed = s;
+            if (this.$refs.video) this.$refs.video.playbackRate = s;
+        },
+
         startRecording() {
+            this.setSpeed(1);
             this.recordingStart   = this.currentDvrTime();
             this.recording        = true;
             this.recordingElapsed = 0;
@@ -200,6 +207,7 @@ export default function registerPlayback(_Alpine) {
             if (this.pc) { this.pc.close(); this.pc = null; }
             if (this.$refs.video) { this.$refs.video.srcObject = null; }
             this.playing = false;
+            this.speed   = 1;
             if (this.recording) { clearInterval(this.recordingTimer); this.recording = false; }
 
             if (this.streamName) {

@@ -97,7 +97,20 @@
                     <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
                     <span class="text-sm text-white" x-text="playingLabel"></span>
                 </div>
-                <button @click="stopPlayback" class="text-xs text-gray-400 hover:text-red-400 transition-colors">✕ Parar</button>
+                <div class="flex items-center gap-2">
+                    {{-- Controle de velocidade --}}
+                    <div class="flex items-center gap-1">
+                        <span class="text-xs text-gray-500">Vel:</span>
+                        @foreach([1, 2, 4] as $s)
+                        <button @click="setSpeed({{ $s }})"
+                                :class="speed === {{ $s }} ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
+                                class="text-xs font-medium px-2 py-0.5 rounded transition-colors">
+                            {{ $s }}x
+                        </button>
+                        @endforeach
+                    </div>
+                    <button @click="stopPlayback" class="text-xs text-gray-400 hover:text-red-400 transition-colors ml-2">✕ Parar</button>
+                </div>
             </div>
             <div class="relative aspect-video bg-black">
                 <video x-ref="video" class="w-full h-full" autoplay muted playsinline controls></video>

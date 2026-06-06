@@ -210,7 +210,7 @@ function setupSignupModal() {
 
   // WhatsApp para "Falar com vendas" e audiência "responsavel"
   // Atualize o número abaixo com o seu WhatsApp
-  var WHATSAPP = 'https://wa.me/5511999999999?text=Ol%C3%A1!%20Tenho%20interesse%20no%20C%C3%A2merasOnline.';
+  var WHATSAPP = 'https://wa.me/5511921026171?text=Ol%C3%A1!%20Tenho%20interesse%20no%20C%C3%A2merasOnline.';
 
   var currentAudience = 'academia';
   document.querySelectorAll('.audience-btn').forEach(function (btn) {

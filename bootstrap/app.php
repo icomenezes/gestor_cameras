@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies('*');
+        $middleware->validateCsrfTokens(except: [
+            'api/register',
+            'webhook/*',
+        ]);
         $middleware->alias([
             'admin'        => \App\Http\Middleware\AdminMiddleware::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,

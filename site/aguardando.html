@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambiente sendo preparado — CâmerasOnline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060912;
+      --bg-card: #0e1424;
+      --border: #1c2438;
+      --text: #f1f5fb;
+      --text-mute: #8a96ad;
+      --accent: #3b82f6;
+      --accent-hov: #2563eb;
+      --green: #22c55e;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 1.1rem;
+      color: var(--text);
+      margin-bottom: 48px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+    }
+    .logo-tld { color: var(--accent); }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 540px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Spinner + ícone de sucesso */
+    .status-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      font-size: 32px;
+    }
+    .status-icon.spinning {
+      background: rgba(59,130,246,.12);
+      color: var(--accent);
+      border: 3px solid transparent;
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    .status-icon.done {
+      background: rgba(34,197,94,.12);
+      color: var(--green);
+      border: 3px solid rgba(34,197,94,.3);
+      animation: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; }
+    .sub { color: var(--text-mute); font-size: .95rem; line-height: 1.6; margin-bottom: 28px; }
+
+    /* Caixa de acesso */
+    .access-box {
+      background: #0a0f1c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      text-align: left;
+      margin-bottom: 28px;
+    }
+    .access-box h3 {
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-mute);
+      margin-bottom: 14px;
+    }
+    .access-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px; font-size: .9rem;
+    }
+    .access-row:last-child { margin-bottom: 0; }
+    .access-row i { color: var(--accent); flex-shrink: 0; }
+    .access-label { color: var(--text-mute); min-width: 56px; }
+    .access-value {
+      color: var(--text);
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .access-value a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .access-value a:hover { text-decoration: underline; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 28px;
+      border-radius: 10px;
+      font-family: inherit; font-size: .95rem; font-weight: 600;
+      cursor: pointer; border: none; transition: background .2s, transform .1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+    .btn-primary:hover { background: var(--accent-hov); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    .steps {
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 28px; text-align: left;
+    }
+    .step-item {
+      display: flex; align-items: center; gap: 12px;
+      font-size: .875rem; color: var(--text-mute);
+      transition: color .3s;
+    }
+    .step-item.done { color: var(--green); }
+    .step-item.active { color: var(--text); }
+    .step-dot {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+      background: var(--border); color: var(--text-mute);
+      transition: background .3s, color .3s;
+    }
+    .step-item.done .step-dot { background: var(--green); color: #fff; }
+    .step-item.active .step-dot { background: var(--accent); color: #fff; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    .footnote { font-size: .8rem; color: var(--text-mute); margin-top: 18px; }
+    .footnote a { color: var(--accent); }
+
+    /* hidden */
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="logo">
+    <div class="logo-icon"><i class="ti ti-video" style="font-size:16px"></i></div>
+    <span>camerasonline<span class="logo-tld">.net.br</span></span>
+  </div>
+
+  <!-- Estado: provisionando -->
+  <div class="card" id="card-loading">
+    <div class="status-icon spinning" id="status-icon">
+      <i class="ti ti-loader-2"></i>
+    </div>
+    <h1 id="card-title">Preparando seu ambiente…</h1>
+    <p class="sub" id="card-sub">Isso leva menos de 2 minutos. Não feche esta aba.</p>
+
+    <div class="steps" id="steps-list">
+      <div class="step-item active" id="step-1">
+        <div class="step-dot">1</div>
+        <span>Criando banco de dados</span>
+      </div>
+      <div class="step-item" id="step-2">
+        <div class="step-dot">2</div>
+        <span>Configurando ambiente isolado</span>
+      </div>
+      <div class="step-item" id="step-3">
+        <div class="step-dot">3</div>
+        <span>Aplicando white-label</span>
+      </div>
+      <div class="step-item" id="step-4">
+        <div class="step-dot">4</div>
+        <span>Liberando acesso admin</span>
+      </div>
+    </div>
+
+    <p class="footnote">Dúvidas? Fale com a gente no <a href="https://wa.me/5511999999999" target="_blank">WhatsApp</a>.</p>
+  </div>
+
+  <!-- Estado: pronto -->
+  <div class="card" id="card-ready" hidden>
+    <div class="status-icon done">
+      <i class="ti ti-check"></i>
+    </div>
+    <h1>Sua academia está no ar!</h1>
+    <p class="sub">Seu sistema está pronto. Acesse agora com as credenciais abaixo e configure suas câmeras.</p>
+
+    <div class="access-box">
+      <h3>Dados de acesso</h3>
+      <div class="access-row">
+        <i class="ti ti-world" style="font-size:18px"></i>
+        <span class="access-label">URL</span>
+        <span class="access-value" id="result-url">—</span>
+      </div>
+      <div class="access-row">
+        <i class="ti ti-at" style="font-size:18px"></i>
+        <span class="access-label">E-mail</span>
+        <span class="access-value" id="result-login">—</span>
+      </div>
+    </div>
+
+    <a class="btn btn-primary" id="btn-acessar" href="#" target="_blank">
+      <i class="ti ti-rocket" style="font-size:18px"></i>
+      Acessar meu painel agora
+    </a>
+
+    <p class="footnote">Guarde estas informações. O setup inicial leva menos de 1 hora com nossa ajuda.</p>
+  </div>
+
+  <!-- Estado: erro -->
+  <div class="card" id="card-error" hidden>
+    <div class="status-icon" style="background:rgba(239,68,68,.12);color:#ef4444;border:3px solid rgba(239,68,68,.3)">
+      <i class="ti ti-alert-triangle"></i>
+    </div>
+    <h1>Ocorreu um problema</h1>
+    <p class="sub" id="error-msg">Não foi possível provisionar seu ambiente. Nossa equipe já foi notificada.</p>
+    <a class="btn btn-primary" href="https://wa.me/5511999999999" target="_blank">
+      <i class="ti ti-brand-whatsapp" style="font-size:18px"></i>
+      Falar com suporte no WhatsApp
+    </a>
+  </div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var slug  = params.get('slug')  || '';
+  var url   = params.get('url')   || '';
+  var login = params.get('login') || '';
+
+  var STEP_DELAYS = [0, 1800, 3400, 5200]; // ms para avançar cada step
+
+  function activateStep(n) {
+    for (var i = 1; i <= 4; i++) {
+      var el = document.getElementById('step-' + i);
+      el.classList.remove('active', 'done');
+      if (i < n) el.classList.add('done');
+      if (i === n) el.classList.add('active');
+    }
+    // atualiza dot dos concluídos para ✓
+    for (var j = 1; j < n; j++) {
+      document.querySelector('#step-' + j + ' .step-dot').innerHTML =
+        '<i class="ti ti-check" style="font-size:12px"></i>';
+    }
+  }
+
+  function showReady() {
+    var urlEl = document.getElementById('result-url');
+    urlEl.innerHTML = '<a href="' + url + '/login" target="_blank">' + (url || '—') + '</a>';
+    document.getElementById('result-login').textContent = login || '—';
+    document.getElementById('btn-acessar').href = (url ? url + '/login' : '#');
+
+    document.getElementById('card-loading').hidden = true;
+    document.getElementById('card-ready').hidden = false;
+  }
+
+  function showError(msg) {
+    if (msg) document.getElementById('error-msg').textContent = msg;
+    document.getElementById('card-loading').hidden = true;
+    document.getElementById('card-error').hidden = false;
+  }
+
+  // Anima os steps durante a espera
+  STEP_DELAYS.forEach(function (delay, idx) {
+    setTimeout(function () { activateStep(idx + 1); }, delay);
+  });
+
+  // Se já veio com url (redirect direto do signup.php), mostra resultado
+  if (url) {
+    // Aguarda os steps animarem antes de revelar
+    var totalAnimTime = STEP_DELAYS[STEP_DELAYS.length - 1] + 1200;
+    setTimeout(function () {
+      // Marca todos como done
+      activateStep(5);
+      setTimeout(showReady, 400);
+    }, totalAnimTime);
+    return;
+  }
+
+  // Fallback: se não veio url, mostra erro
+  setTimeout(function () {
+    showError('Não recebemos confirmação do servidor. Entre em contato pelo WhatsApp.');
+  }, 8000);
+}());
+</script>
+
+</body>
+</html>

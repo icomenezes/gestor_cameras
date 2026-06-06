@@ -432,6 +432,10 @@ Route::middleware(['auth', 'subscription'])->group(function () {
 Route::post('/webhook/camera-event', [\App\Http\Controllers\Admin\CameraEventController::class, 'webhook'])
     ->name('webhook.camera-event');
 
+// Cadastro público — recebe leads do site camerasonline.net.br
+Route::post('/api/register', [\App\Http\Controllers\PublicRegisterController::class, 'store'])
+    ->name('api.register');
+
 // Super-Admin
 Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'superadmin'])->group(function () {
     Route::get('/', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'index'])->name('tenants.index');

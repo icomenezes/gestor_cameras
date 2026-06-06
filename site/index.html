@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CâmerasOnline — Acesso profissional às câmeras da sua academia</title>
+  <meta name="description" content="Sistema web SaaS de acesso a câmeras de academias e escolinhas. Streaming ao vivo, playback do DVR, clipes para download, cobrança recorrente. Trial 14 dias sem cartão.">
+
+  <meta property="og:title" content="CâmerasOnline — Câmeras da sua academia, no celular dos seus alunos">
+  <meta property="og:description" content="Transforme suas câmeras de segurança em receita recorrente. Sem trocar hardware, sem técnico. 14 dias grátis.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://camerasonline.net.br">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/tabler-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* === Modal de Cadastro === */
+    .signup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+    .signup-overlay[hidden]{display:none!important}
+    .signup-card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:36px 32px;max-width:440px;width:100%;position:relative;animation:modal-in .25s ease}
+    @keyframes modal-in{from{opacity:0;transform:translateY(-14px) scale(.97)}to{opacity:1;transform:none}}
+    .signup-close{position:absolute;top:14px;right:18px;background:none;border:none;color:#64748b;font-size:1.6rem;cursor:pointer;line-height:1;padding:4px;transition:color .2s}
+    .signup-close:hover{color:#f1f5f9}
+    .signup-icon{width:50px;height:50px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:#fff}
+    .signup-header{text-align:center;margin-bottom:24px}
+    .signup-header h2{font-size:1.3rem;font-weight:700;color:#f1f5f9;margin-bottom:5px}
+    .signup-header p{font-size:.875rem;color:#94a3b8}
+    .signup-field{margin-bottom:14px}
+    .signup-field label{display:block;font-size:.75rem;font-weight:600;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+    .signup-field input{width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:11px 13px;color:#f1f5f9;font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s}
+    .signup-field input:focus{border-color:#3b82f6}
+    .signup-field input::placeholder{color:#475569}
+    .signup-error{background:#450a0a;border:1px solid #7f1d1d;border-radius:8px;color:#fca5a5;font-size:.85rem;padding:10px 13px;margin-bottom:12px}
+    .signup-footnote{font-size:.72rem;color:#475569;text-align:center;margin-top:14px}
+    .signup-footnote a{color:#64748b;text-decoration:underline}
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <nav class="nav reveal">
+    <div class="logo">
+      <span class="logo-icon"><i class="ti ti-video" style="font-size:18px" aria-hidden="true"></i></span>
+      <span>camerasonline<span class="logo-tld">.net.br</span></span>
+    </div>
+    <div class="nav-links">
+      <a href="#features">Recursos</a>
+      <a href="#how">Como funciona</a>
+      <a href="#pricing">Planos</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <button class="btn btn-pill open-signup">Criar conta grátis →</button>
+  </nav>
+
+  <div class="audience-toggle reveal">
+    <div class="audience-group" role="tablist">
+      <button class="audience-btn active" data-audience="academia">
+        <i class="ti ti-building" style="font-size:15px" aria-hidden="true"></i>
+        Sou academia
+      </button>
+      <button class="audience-btn" data-audience="responsavel">
+        <i class="ti ti-users" style="font-size:15px" aria-hidden="true"></i>
+        Sou pai / responsável
+      </button>
+    </div>
+  </div>
+
+  <section class="hero reveal">
+    <span class="status-pill swap" id="hero-badge">14 DIAS GRÁTIS · SEM CARTÃO</span>
+    <h1 class="swap" id="hero-h1">Suas câmeras viraram um <span class="accent">serviço recorrente</span> da academia.</h1>
+    <p class="lead swap" id="hero-lead">Libere acesso controlado às câmeras da sua academia para alunos e responsáveis. Gravação no DVR, clipes para download e cobrança recorrente — sem técnico, sem aplicativo de fabricante.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary btn-lg open-signup" id="hero-cta-primary">
+        <i class="ti ti-rocket" style="font-size:18px" aria-hidden="true"></i>
+        <span class="swap">Começar trial de 14 dias</span>
+      </button>
+      <button class="btn btn-ghost btn-lg" id="hero-cta-secondary">
+        <i class="ti ti-player-play" style="font-size:18px" aria-hidden="true"></i>
+        <span class="swap">Ver demonstração</span>
+      </button>
+    </div>
+    <div class="cta-note">
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Sem cartão de crédito</span>
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Setup em menos de 1 hora</span>
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Cancele quando quiser</span>
+    </div>
+
+    <div class="hero-mockup reveal">
+      <div class="mockup-bar">
+        <span class="mockup-dot"></span>
+        <span class="mockup-dot"></span>
+        <span class="mockup-dot"></span>
+        <span class="mockup-url">academia.camerasonline.net.br</span>
+      </div>
+      <div class="cam-grid">
+        <div class="cam-tile">
+          <i class="ti ti-pool cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">PISCINA</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+        <div class="cam-tile">
+          <i class="ti ti-soccer-field cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">QUADRA 1</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+        <div class="cam-tile">
+          <i class="ti ti-door cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">RECEPÇÃO</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+        <div class="cam-tile">
+          <i class="ti ti-barbell cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">MUSCULAÇÃO</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+        <div class="cam-tile">
+          <i class="ti ti-stretching cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">SALA AERÓBICA</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+        <div class="cam-tile">
+          <i class="ti ti-parking cam-tile-icon" style="font-size:36px" aria-hidden="true"></i>
+          <span class="cam-tile-label">ESTACIONAMENTO</span>
+          <span class="cam-tile-time">14:23:07</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="trust-bar reveal">
+    <div>
+      <div class="trust-num" data-target="14" data-suffix=" dias">14 dias</div>
+      <div class="trust-lbl">trial sem cartão</div>
+    </div>
+    <div>
+      <div class="trust-num" data-target="1" data-prefix="&lt;" data-suffix="h">&lt;1h</div>
+      <div class="trust-lbl">setup completo</div>
+    </div>
+    <div>
+      <div class="trust-num">WebRTC</div>
+      <div class="trust-lbl">sem plugin ou app</div>
+    </div>
+    <div>
+      <div class="trust-num" data-target="100" data-suffix="%">100%</div>
+      <div class="trust-lbl">white-label</div>
+    </div>
+  </div>
+
+  <section class="section" id="features">
+    <div class="section-head reveal">
+      <div class="eyebrow swap" id="section2-eyebrow">o que está incluso</div>
+      <h2 class="swap" id="section2-h2">Tudo que sua academia precisa <span class="accent">em um só lugar.</span></h2>
+    </div>
+    <div class="grid-3 reveal" id="feature-grid">
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-broadcast" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Streaming ao vivo no celular</h3>
+        <p>WebRTC sem plugin. Funciona em iPhone, Android e qualquer browser moderno. Mosaico multi-câmera incluído.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-history" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Playback do DVR + clipes</h3>
+        <p>Timeline visual do dia, navegação por data e download de clipes em MP4 com quota por usuário.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-credit-card" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Cobrança recorrente automática</h3>
+        <p>PIX, boleto e cartão via Asaas. Renovação automática, suspensão por inadimplência, zero trabalho manual.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-palette" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Marca da sua academia</h3>
+        <p>White-label completo: logo, cores, favicon e domínio próprio. O sistema veste a identidade do seu negócio.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-chart-bar" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Analytics e auditoria</h3>
+        <p>Quem acessou o quê, quando, por quanto tempo. Heatmap de uso, taxa de renovação e logs completos.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon"><i class="ti ti-shield-lock" style="font-size:22px" aria-hidden="true"></i></div>
+        <h3>Segurança em camadas</h3>
+        <p>Acesso por câmera com expiração, isolamento total por academia e sessões com heartbeat em tempo real.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head reveal">
+      <div class="eyebrow">como funciona</div>
+      <h2>Em 3 passos, da <span class="accent">configuração ao primeiro pagamento.</span></h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Crie sua conta grátis</h3>
+        <p>Trial de 14 dias sem cartão. Em 5 minutos sua academia já tem domínio próprio (academia.camerasonline.net.br).</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Conecte seu DVR</h3>
+        <p>Aponte para o IP do seu DVR/NVR Intelbras, Dahua ou Hikvision. As câmeras aparecem automaticamente no painel.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Libere acesso e cobre</h3>
+        <p>Cadastre seus clientes, libere câmeras por usuário e ative cobrança via PIX/boleto/cartão. Lucro recorrente.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="section-head reveal">
+      <div class="eyebrow">planos transparentes</div>
+      <h2>Escolha o plano que <span class="accent">cresce com você.</span></h2>
+      <p class="sublead">Todos os planos incluem 14 dias grátis. Sem fidelidade, sem multa.</p>
+    </div>
+    <div class="pricing reveal">
+
+      <div class="plan">
+        <div class="plan-name">Starter</div>
+        <p class="plan-tag">Para academias começando ou com poucos pontos de câmera.</p>
+        <div class="plan-price">
+          <span class="currency">R$</span>
+          <span class="value">97</span>
+          <span class="period">/mês</span>
+        </div>
+        <div class="plan-trial">14 dias grátis · sem cartão</div>
+        <ul class="plan-features">
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Até 4 câmeras</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Até 10 usuários ativos</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>100 MB de clipes por usuário</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Streaming ao vivo + playback</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>White-label completo</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Suporte por e-mail</li>
+        </ul>
+        <button class="btn btn-ghost open-signup" style="width:100%; justify-content:center;">Começar grátis</button>
+      </div>
+
+      <div class="plan featured">
+        <span class="plan-badge">MAIS POPULAR</span>
+        <div class="plan-name">Pro</div>
+        <p class="plan-tag">Para academias estabelecidas com várias câmeras e centenas de alunos.</p>
+        <div class="plan-price">
+          <span class="currency">R$</span>
+          <span class="value">297</span>
+          <span class="period">/mês</span>
+        </div>
+        <div class="plan-trial">14 dias grátis · sem cartão</div>
+        <ul class="plan-features">
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Até 16 câmeras</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Até 50 usuários ativos</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>300 MB de clipes por usuário</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Tudo do Starter</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Alertas no WhatsApp</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Analytics avançado</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Suporte prioritário</li>
+        </ul>
+        <button class="btn btn-primary open-signup" style="width:100%; justify-content:center;">Começar grátis</button>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Enterprise</div>
+        <p class="plan-tag">Redes, franquias e estabelecimentos com necessidades específicas.</p>
+        <div class="plan-price">
+          <span class="currency">R$</span>
+          <span class="value">897</span>
+          <span class="period">/mês</span>
+        </div>
+        <div class="plan-trial">14 dias grátis · sem cartão</div>
+        <ul class="plan-features">
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Câmeras ilimitadas</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Usuários ilimitados</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>800 MB de clipes por usuário</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Tudo do Pro</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>API pública</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>Onboarding dedicado</li>
+          <li><i class="ti ti-check" style="font-size:16px" aria-hidden="true"></i>SLA garantido</li>
+        </ul>
+        <button class="btn btn-ghost btn-enterprise" style="width:100%; justify-content:center;">Falar com vendas</button>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="section-head reveal">
+      <div class="eyebrow">perguntas frequentes</div>
+      <h2>Tudo o que você precisa saber.</h2>
+    </div>
+    <div class="reveal" id="faq-wrap">
+      <details class="faq" open>
+        <summary>Preciso trocar minhas câmeras?</summary>
+        <p>Não. Funciona com qualquer DVR/NVR Intelbras ou Dahua que tenha acesso à internet (RTSP). Hikvision e câmeras genéricas IP também são suportadas via URL RTSP.</p>
+      </details>
+      <details class="faq">
+        <summary>Quanto tempo leva pra subir minha academia no ar?</summary>
+        <p>Menos de 1 hora. Você cria a conta, aponta o domínio, configura as câmeras e libera acesso aos clientes. O time da CâmerasOnline acompanha o setup do primeiro tenant.</p>
+      </details>
+      <details class="faq">
+        <summary>Como funciona a cobrança recorrente dos alunos?</summary>
+        <p>Integração com Asaas (PIX, boleto e cartão). Cada aluno paga direto pela plataforma e a assinatura é ativada/suspensa automaticamente. Você define os preços e planos.</p>
+      </details>
+      <details class="faq">
+        <summary>E se a internet do meu DVR cair?</summary>
+        <p>O sistema detecta câmera offline em tempo real e te notifica por e-mail e WhatsApp. Quando voltar, reconecta sozinho — sem perder histórico do DVR.</p>
+      </details>
+      <details class="faq">
+        <summary>Posso ter minha marca no sistema?</summary>
+        <p>Sim, white-label completo. Logo da academia, favicon, cores primárias, e-mail e WhatsApp de suporte da academia. O cliente nunca vê a marca da CâmerasOnline.</p>
+      </details>
+      <details class="faq">
+        <summary>Que dados eu vejo do uso?</summary>
+        <p>Câmeras mais assistidas, heatmap de horários de pico, tempo médio de sessão, taxa de renovação, logins diários e logs completos de auditoria por usuário.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="final-cta reveal">
+    <h2 class="swap" id="final-h2">Pronto para transformar suas câmeras em <span class="accent">receita recorrente?</span></h2>
+    <p class="lead swap" id="final-lead">14 dias grátis, sem cartão. Em uma hora você está no ar.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary btn-lg open-signup" id="final-cta">
+        <i class="ti ti-arrow-right" style="font-size:18px" aria-hidden="true"></i>
+        <span class="swap">Criar conta da minha academia</span>
+      </button>
+    </div>
+    <div class="cta-note" style="margin-top:18px;">
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Sem cartão</span>
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Cancele quando quiser</span>
+      <span><i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Suporte humano</span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>© 2026 CâmerasOnline · um produto TRSystem · Jundiaí — SP</span>
+    <span class="footer-links">
+      <a href="#">Termos</a>
+      <a href="#">Privacidade</a>
+      <a href="#">Contato</a>
+    </span>
+  </footer>
+
+</div>
+
+<script src="script.js"></script>
+
+<!-- Modal de Cadastro Trial -->
+<div id="signup-modal" class="signup-overlay" aria-modal="true" role="dialog" aria-labelledby="modal-title" hidden>
+  <div class="signup-card">
+    <button class="signup-close" id="signup-close" aria-label="Fechar">&times;</button>
+    <div class="signup-header">
+      <div class="signup-icon">
+        <i class="ti ti-rocket" style="font-size:22px" aria-hidden="true"></i>
+      </div>
+      <h2 id="modal-title">Criar sua conta grátis</h2>
+      <p>14 dias de trial, sem cartão. Seu sistema estará no ar em menos de 2 minutos.</p>
+    </div>
+    <form id="signup-form" novalidate>
+      <div class="signup-field">
+        <label for="signup-name">Nome da academia</label>
+        <input type="text" id="signup-name" name="name" placeholder="Academia Villa Tênis" required autocomplete="organization">
+      </div>
+      <div class="signup-field">
+        <label for="signup-email">E-mail</label>
+        <input type="email" id="signup-email" name="email" placeholder="contato@academia.com.br" required autocomplete="email">
+      </div>
+      <div class="signup-field">
+        <label for="signup-password">Senha <span style="color:#64748b;font-size:.75rem;text-transform:none;letter-spacing:0">(mín. 8 caracteres)</span></label>
+        <input type="password" id="signup-password" name="password" placeholder="••••••••" required autocomplete="new-password">
+      </div>
+      <div id="signup-error" class="signup-error" hidden></div>
+      <button type="submit" class="btn btn-primary" id="signup-submit" style="width:100%;justify-content:center;margin-top:6px;">
+        Criar minha conta grátis
+      </button>
+    </form>
+    <p class="signup-footnote">Ao criar sua conta você concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
+  </div>
+</div>
+
+</body>
+</html>

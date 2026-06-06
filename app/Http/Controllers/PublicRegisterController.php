@@ -42,20 +42,22 @@ class PublicRegisterController extends Controller
             'status'           => 'active',
         ]);
 
-        $script = base_path('novo-cliente.sh');
-        $output = null;
+        // Chama o agente de provisionamento rodando no host (provision-agent.php)
+        // O agente executa novo-cliente.sh fora do container Docker
+        $agentUrl = 'http://172.17.0.1:9099'; // gateway padrão Docker → host
+        $secret   = env('PROVISION_SECRET', 'trocar-por-segredo-forte');
 
-        if (file_exists($script)) {
-            $cmd = sprintf(
-                'bash %s --slug %s --domain %s --email %s --password %s 2>&1',
-                escapeshellarg($script),
-                escapeshellarg($slug),
-                escapeshellarg($domain),
-                escapeshellarg($data['email']),
-                escapeshellarg($data['password'])
-            );
-            $output = shell_exec($cmd);
-            $tenant->update(['meta' => ['provision_log' => $output]]);
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(10)->post($agentUrl, [
+                'secret'   => $secret,
+                'slug'     => $slug,
+                'domain'   => $domain,
+                'email'    => $data['email'],
+                'password' => $data['password'],
+            ]);
+            $tenant->update(['meta' => ['provision_status' => $response->status()]]);
+        } catch (\Throwable $e) {
+            $tenant->update(['meta' => ['provision_error' => $e->getMessage()]]);
         }
 
         return response()->json([

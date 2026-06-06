@@ -11,7 +11,7 @@ $port   = 9099;
 $secret = getenv('PROVISION_SECRET') ?: 'trocar-por-segredo-forte';
 $script = __DIR__ . '/novo-cliente.sh';
 
-$sock = stream_socket_server("tcp://127.0.0.1:{$port}", $errno, $errstr);
+$sock = stream_socket_server("tcp://0.0.0.0:{$port}", $errno, $errstr);
 if (!$sock) {
     fwrite(STDERR, "Erro ao abrir socket: {$errstr} ({$errno})\n");
     exit(1);

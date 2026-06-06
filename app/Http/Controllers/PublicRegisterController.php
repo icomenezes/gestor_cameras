@@ -44,7 +44,7 @@ class PublicRegisterController extends Controller
 
         // Chama o agente de provisionamento rodando no host (provision-agent.php)
         // O agente executa novo-cliente.sh fora do container Docker
-        $agentUrl = 'http://172.17.0.1:9099'; // gateway padrão Docker → host
+        $agentUrl = 'http://172.18.0.1:9099'; // gateway da rede cameras_net → host
         $secret   = env('PROVISION_SECRET', 'trocar-por-segredo-forte');
 
         try {

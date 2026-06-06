@@ -43,6 +43,7 @@ class Subscription extends Model
     public static function planDays(string $plan): int
     {
         return match ($plan) {
+            'trial'     => 7,
             'monthly'   => 30,
             'quarterly' => 90,
             'annual'    => 365,
@@ -53,10 +54,22 @@ class Subscription extends Model
     public static function planLabel(string $plan): string
     {
         return match ($plan) {
+            'trial'     => 'Trial (7 dias)',
             'monthly'   => 'Mensal',
             'quarterly' => 'Trimestral',
             'annual'    => 'Anual',
             default     => $plan,
         };
+    }
+
+    public function isTrial(): bool
+    {
+        return $this->plan === 'trial';
+    }
+
+    public function trialDaysLeft(): int
+    {
+        if (!$this->isTrial() || !$this->isActive()) return 0;
+        return max(0, (int) now()->diffInDays($this->expires_at, false));
     }
 }

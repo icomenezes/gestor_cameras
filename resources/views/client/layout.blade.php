@@ -75,6 +75,32 @@
         </div>
     </header>
 
+    {{-- Banner trial --}}
+    @php
+        $activeSub = auth()->user()?->subscriptions()->active()->latest()->first();
+        $daysLeft  = $activeSub?->trialDaysLeft();
+    @endphp
+    @if($activeSub?->isTrial())
+    <div class="bg-yellow-900/40 border-b border-yellow-700/50 px-4 py-2 flex items-center justify-between gap-3 text-xs">
+        <span class="text-yellow-300 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            @if($daysLeft > 1)
+                Seu trial termina em <strong class="ml-1">{{ $daysLeft }} dias</strong>.
+            @elseif($daysLeft === 1)
+                Seu trial termina <strong class="ml-1">amanhã</strong>.
+            @else
+                Seu trial termina <strong class="ml-1">hoje</strong>.
+            @endif
+        </span>
+        <a href="mailto:{{ $tenant->support_email ?? config('app.url') }}"
+           class="bg-yellow-600 hover:bg-yellow-500 text-white font-semibold px-3 py-1 rounded transition-colors whitespace-nowrap">
+            Assinar agora
+        </a>
+    </div>
+    @endif
+
     {{-- Banner "Adicionar à tela inicial" --}}
     <div id="pwa-banner" class="hidden fixed bottom-0 left-0 right-0 z-50 bg-gray-900 border-t border-gray-700 px-4 py-3 flex items-center gap-3 shadow-lg">
         <div class="w-9 h-9 rounded flex items-center justify-center flex-shrink-0" style="background-color: var(--color-primary)">

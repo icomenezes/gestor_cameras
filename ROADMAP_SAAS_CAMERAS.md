@@ -1,89 +1,207 @@
-# Sistema de Câmeras SaaS — Roadmap de Produto e Contexto Técnico
+# CâmerasSaaS — Documentação Completa do Produto
 
-## Contexto do Projeto
+## Tagline
+**Acesso profissional às câmeras da sua academia — com gravação, playback e controle total, sem precisar de técnico.**
 
-Sistema web SaaS para academias, escolas esportivas e estabelecimentos que precisam disponibilizar acesso a câmeras de segurança para alunos/clientes de forma controlada, com assinatura e auditoria completa.
+## Proposta de Valor
+Sistema web SaaS que permite academias, escolinhas esportivas e estabelecimentos disponibilizar acesso às câmeras de segurança para alunos e clientes de forma controlada, com assinatura recorrente, gravações no DVR, clipes para download e auditoria completa de acessos.
 
-**Stack:** Laravel 13.11.2 · PHP 8.3 · MySQL 8.4 · Tailwind CSS · Alpine.js · go2rtc (RTSP → WebRTC) · FFmpeg  
-**Infraestrutura:** Docker · Multi-tenant via script de provisionamento · Laragon (dev local Windows)  
-**Câmeras suportadas:** Intelbras/Dahua (protocolo Dahua), RTSP genérico, HLS
-
-O sistema **já funciona** em produção. O objetivo agora é **evoluir como produto SaaS comercializável**, com features que justifiquem assinatura recorrente e reduzam churn.
+O cliente acessa pelo celular ou computador, via link, sem instalar nada. O gestor da academia tem controle total de quem vê o quê e por quanto tempo.
 
 ---
 
-## O que já está implementado
+## Público-Alvo
 
-### Admin
-- CRUD de câmeras (IP, porta, usuário/senha, canal, subtype)
-- CRUD de usuários com quota de clipes configurável (100/300/500/800 MB)
-- Controle de acesso por câmera com expiração opcional (`camera_user` pivot)
-- Assinaturas: criar (mensal/trimestral/anual), renovar, suspender
-- Dashboard: online agora, assinaturas vencendo em 7 dias, atividade recente, acessos negados
-- Logs de acesso com filtro por usuário/evento/data
-- Toggle de gravação contínua por câmera via go2rtc
-- Playback de DVR (Intelbras/Dahua) via RTSP com go2rtc
-
-### Cliente
-- Dashboard com câmeras ao vivo (WebRTC via go2rtc)
-- Grade configurável (1/2/3 colunas)
-- Botões mobile: Expandir + Gravações
-- Playback de gravações do DVR
-- Criação de clipes com controle de quota por usuário
-- Download de clipes
-- Página de assinatura expirada
-
-### Infraestrutura
-- Heartbeat a cada 30s (atualiza `active_sessions`)
-- Scheduler: `clips:purge` (2 dias) + `subscriptions:expire` (00:05)
-- Proxy WebRTC para evitar CORS
-- Multi-tenant via Docker + script de provisionamento
-
-### Banco de dados relevante
-- `users` (role: admin|client, clips_quota_mb)
-- `cameras` (stream_url, ip, port, channel, subtype, is_active, is_recording)
-- `camera_user` (granted_at, expires_at)
-- `subscriptions` (plan, status, starts_at, expires_at, granted_by, notes)
-- `access_logs` (event enum: login/logout/stream_start/stream_stop/access_denied/subscription_expired)
-- `active_sessions` (watching_camera_id, last_seen_at via heartbeat 30s)
-- `recordings`, `recording_segments`, `clips`
+- **Academias de esportes** (natação, ginástica, futebol, tênis, musculação)
+- **Escolinhas infantis e recreativas**
+- **Condomínios e espaços esportivos privados**
+- **Qualquer estabelecimento** que queira monetizar o acesso às câmeras de segurança já instaladas
 
 ---
 
-## Roadmap de Features por Prioridade Comercial
+## O que o cliente precisa ter
 
-As features estão agrupadas por impacto em vendas e retenção. Implemente na ordem sugerida.
+- DVR/NVR Intelbras ou Dahua com acesso à internet (porta RTSP aberta)
+- Câmeras IP com suporte RTSP (padrão do mercado)
+- Também funciona com qualquer câmera que suporte streaming RTSP genérico ou HLS
 
 ---
 
-### PRIORIDADE 1 — Produto vendável hoje (quick wins)
+## Câmeras e DVRs Suportados
 
-#### 1.1 Self-service de assinatura com pagamento integrado
+| Marca | Protocolo | Observação |
+|---|---|---|
+| Intelbras | Dahua (nativo) | MHDX, iMHDX, NVD — porta 8000 (HTTP API) + 554 (RTSP) |
+| Dahua | Dahua | Totalmente compatível |
+| Hikvision | RTSP genérico | Funciona via URL RTSP manual |
+| Genérico | RTSP / HLS | Qualquer câmera com URL de stream |
 
-**Por quê vende:** O admin hoje cria assinatura manualmente com nota "Pagamento PIX". Isso não escala para dezenas de clientes.
+---
 
-**O que implementar:**
-- Integração com **Stripe** (internacional) ou **Pagar.me / Asaas** (BR — PIX + boleto + cartão)
-- Fluxo: cliente acessa `/assinar`, escolhe plano, paga, assinatura criada automaticamente
-- Webhook de pagamento → atualiza `subscriptions.status`
+## Funcionalidades Implementadas (Disponíveis Agora)
+
+### Para o Administrador da Academia
+
+#### Gestão de Câmeras
+- Cadastro de câmeras com IP, porta, usuário, senha, canal e substream
+- Toggle de gravação contínua por câmera (via go2rtc)
+- Suporte a múltiplos canais do mesmo DVR/NVR
+- Visualização ao vivo das câmeras no painel admin
+
+#### Gestão de Usuários e Assinaturas
+- Cadastro de clientes com controle de quota de armazenamento (100 / 300 / 500 / 800 MB por usuário)
+- Criação de assinaturas mensal, trimestral e anual
+- Renovação e suspensão de assinaturas
+- Liberação de câmeras por usuário com expiração opcional (ex: "acesso até 31/12")
+- Revogação de acesso por câmera individualmente
+
+#### Dashboard em Tempo Real
+- Clientes online agora (com câmera que estão assistindo)
+- Assinaturas vencendo nos próximos 7 dias
+- Atividade recente de acessos
+- Acessos negados (tentativas bloqueadas)
+
+#### Playback de DVR
+- Timeline visual do dia completo em blocos de 5 minutos
+- Navegação por data
+- Reprodução via WebRTC (sem plugin, direto no browser)
+- Controle de velocidade de reprodução: 1x, 2x, 4x
+- Gravar cenas durante o playback (o sistema detecta o instante exato no DVR)
+- Criar clipes de trechos específicos (1 / 5 / 10 minutos)
+
+#### Alertas e Eventos de Câmera
+- Webhook para receber eventos de câmeras: movimento, adulteração, câmera offline/online
+- Notificação por e-mail ao admin quando evento detectado
+- Notificação por WhatsApp ao admin quando evento detectado
+- Timeline de eventos por câmera com filtro por tipo e data
+
+#### Logs e Auditoria
+- Log completo de acessos: login, logout, início/fim de stream, acesso negado, assinatura expirada
+- Filtro por usuário, evento e data
+- Rastreabilidade total de quem acessou qual câmera e quando
+
+#### Analytics do Tenant
+- Câmeras mais assistidas no mês
+- Heatmap de horários de pico (hora × dia da semana nos últimos 30 dias)
+- Tempo médio de sessão por usuário
+- Taxa de renovação de assinaturas
+- Gráfico de logins diários (últimos 30 dias)
+- Totais: clientes ativos, assinaturas ativas, câmeras, streams no mês
+
+#### Snapshots Agendados
+- Captura automática de frame por câmera em intervalo configurável
+- Galeria de snapshots por câmera com filtro por data
+- Histórico visual de monitoramento
+
+#### White-Label (Identidade Visual da Academia)
+- Upload de logo da academia (PNG/JPG/SVG)
+- Upload de favicon personalizado
+- Cor primária e cor de destaque configuráveis (seletor hex)
+- Nome da empresa exibido no sistema
+- E-mail e WhatsApp de suporte da academia
+- Login e dashboard exibem a marca da academia, não a marca do sistema
+
+---
+
+### Para o Cliente (Aluno / Responsável)
+
+#### Câmeras ao Vivo
+- Dashboard com todas as câmeras liberadas pelo admin
+- Streaming WebRTC em tempo real (sem plugin, funciona no celular)
+- Grade configurável: 1, 2 ou 3 câmeras por linha
+- Botão para expandir câmera em tela cheia
+- Mosaico multi-câmera: ver várias ao mesmo tempo
+
+#### Playback de Gravações do DVR
+- Acesso ao histórico de gravações da câmera
+- Timeline visual do dia em blocos de 5 minutos
+- Clique no bloco para assistir o trecho
+- Controle de velocidade 1x / 2x / 4x para encontrar o momento certo
+- Seleção de data para navegar no histórico
+
+#### Clipes Pessoais
+- Gravar cena durante o playback (botão sobre o vídeo)
+- Criar clipes de trechos específicos (1 / 5 / 10 minutos) via formulário
+- Biblioteca pessoal de clipes com status (processando / pronto / falhou)
+- Preview do clipe antes de baixar (player inline)
+- Download do clipe em MP4
+- Barra de storage com uso atual vs. quota do plano
+- Aviso automático que clipes são deletados após 2 dias
+
+#### Assinatura
+- Página de assinatura expirada com mensagem clara e link para contato
+- Acesso bloqueado automaticamente ao vencer a assinatura
+
+---
+
+## Arquitetura e Infraestrutura
+
+### Stack Técnico
+| Componente | Tecnologia |
+|---|---|
+| Backend | Laravel 13 (PHP 8.3) |
+| Frontend | Tailwind CSS + Alpine.js |
+| Banco de dados | MySQL 8.4 |
+| Streaming | go2rtc (RTSP → WebRTC) |
+| Transcodificação | FFmpeg |
+| Autenticação | Laravel Breeze |
+| Deploy | Docker (um container por cliente) |
+
+### Multi-Tenant Isolado
+- Cada academia roda em seu próprio container Docker
+- Banco de dados completamente separado por cliente
+- Domínio próprio com SSL automático via Let's Encrypt
+- Provisionamento em minutos via script automatizado
+
+### Painel Super-Admin (Operador do SaaS)
+- Visão de todos os tenants: status, câmeras, usuários, assinaturas
+- Criar novo tenant diretamente pelo painel (executa provisionamento)
+- Suspender e reativar tenants com um clique (para/inicia container)
+- Sincronização de dados em tempo real
+
+### Segurança e Controle de Acesso
+Verificações em camada, nesta ordem:
+1. Autenticado? (middleware `auth`)
+2. Assinatura ativa? (middleware `subscription`)
+3. Câmera liberada para este usuário? (tabela `camera_user`)
+4. Acesso da câmera não expirou? (campo `expires_at` do pivot)
+
+### Heartbeat e Sessões
+- Cada cliente envia heartbeat a cada 30 segundos
+- Admin vê em tempo real quem está online e qual câmera está assistindo
+- Sessão considerada ativa se `last_seen_at >= agora − 2 minutos`
+
+### Tarefas Agendadas
+- `clips:purge` — apaga clipes com mais de 2 dias (todo dia às 00:00)
+- `subscriptions:expire` — marca assinaturas vencidas como expiradas (todo dia às 00:05)
+
+---
+
+## Planos Sugeridos
+
+| Plano | Câmeras | Usuários | Storage de clipes | Preço/mês |
+|---|---|---|---|---|
+| **Starter** | até 4 | até 10 | 100 MB/usuário | R$ 97 |
+| **Pro** | até 16 | até 50 | 300 MB/usuário | R$ 297 |
+| **Enterprise** | Ilimitado | Ilimitado | 800 MB/usuário | R$ 897 |
+
+> Todos os planos incluem: streaming ao vivo, playback DVR, clipes, white-label, alertas de movimento, analytics e suporte.
+
+---
+
+## Roadmap — Features em Desenvolvimento
+
+### SPRINT 1 — Próximas semanas
+
+#### Self-service de assinatura com pagamento integrado
+- Integração com **Asaas** (PIX + boleto + cartão de crédito — foco Brasil)
+- Fluxo: cliente acessa `/assinar`, escolhe plano, paga → assinatura criada automaticamente
+- Webhook de pagamento → atualiza status da assinatura em tempo real
 - Renovação automática com cartão salvo
-- E-mail de confirmação de pagamento (já tem Laravel Mail)
-- Página `/minha-assinatura` para o cliente ver status, próximo vencimento, histórico de pagamentos
+- Página `/minha-assinatura`: status, próximo vencimento, histórico de pagamentos
+- **Impacto:** elimina trabalho manual do admin, permite crescer sem aumentar equipe
 
-**Tabelas novas:**
-```sql
-payment_transactions (id, subscription_id, gateway, gateway_id, amount, status, paid_at, meta json)
-```
-
-**Impacto:** Remove trabalho manual do admin e permite escalar sem aumentar equipe.
-
----
-
-#### 1.2 E-mail automatizado para o cliente
-
-**Por quê vende:** Profissionaliza o produto. Cliente se sente cuidado.
-
-**O que implementar (Mailable + Queue):**
+#### E-mails automatizados
 - Boas-vindas ao criar conta
 - Assinatura ativada (com link direto para câmeras)
 - Aviso 7 dias antes do vencimento
@@ -91,272 +209,83 @@ payment_transactions (id, subscription_id, gateway, gateway_id, amount, status, 
 - Assinatura expirada (com link para renovar)
 - Acesso concedido a nova câmera
 - Clipe pronto para download
+- **Config:** Resend ou Mailgun para alta entregabilidade
 
-**Config:** `MAIL_MAILER=smtp` já suportado pelo Laravel. Usar **Resend** ou **Mailgun** para deliverability.
-
----
-
-#### 1.3 Notificações push / WhatsApp
-
-**Por quê vende:** Brasil usa WhatsApp. Academias têm relacionamento via WhatsApp com alunos.
-
-**O que implementar:**
-- Campo `whatsapp` na tabela `users`
-- Integração com **Evolution API v2** (já na infraestrutura do TRSystem)
-- Disparar mensagem nos mesmos eventos do e-mail acima
+#### Notificações WhatsApp para o cliente
+- Mesmos eventos acima enviados via WhatsApp
+- Campo WhatsApp no cadastro do cliente
 - Admin pode ativar/desativar por tenant
+- **Infraestrutura:** Evolution API v2 (já na stack do TRSystem)
 
 ---
 
-#### 1.4 Página de login personalizada por tenant (white-label básico)
+### SPRINT 2
 
-**Por quê vende:** A academia quer mostrar a marca dela, não a sua.
-
-**O que implementar:**
-- Tabela `tenant_settings` (logo_url, primary_color, accent_color, company_name, favicon_url)
-- Middleware que carrega config do tenant pelo domínio/subdomínio
-- Variáveis CSS injetadas no `<head>` via Blade
-- Tela de login, dashboard e e-mails com logo/cor da academia
-- Upload de logo no painel admin
-
----
-
-### PRIORIDADE 2 — Diferencial competitivo (próximas 4–8 semanas)
-
-#### 2.1 Alertas de movimento / eventos por câmera
-
-**Por quê vende:** A grande dor do mercado não é ver a câmera — é **ser avisado quando algo acontece**.
-
-**O que implementar (fase 1 — sem IA):**
-- go2rtc tem suporte a hooks de motion detection via `onvif` ou integração com câmeras que suportam eventos ONVIF
-- Tabela `camera_events` (camera_id, event_type: motion|tampering|offline, detected_at, snapshot_url, notified_at)
-- Worker que consome eventos do go2rtc/câmera e insere na tabela
-- Notificação push/e-mail/WhatsApp para o admin quando detectado
-- Dashboard admin: timeline de eventos por câmera
-
-**O que implementar (fase 2 — com IA):**
-- Capturar frame via FFmpeg quando evento detectado
-- Enviar para API de visão (OpenAI Vision ou Rekognition) para classificar: "pessoa", "veículo", "animal"
-- Filtrar falsos positivos (folha voando, sombra)
-- Cliente recebe alerta com thumbnail do evento
-
----
-
-#### 2.2 Snapshot agendado e relatório de presença
-
-**Por quê vende:** Academias precisam provar para seguros/responsáveis que o ambiente estava monitorado.
-
-**O que implementar:**
-- Comando Artisan `cameras:snapshot {camera_id}` via FFmpeg (captura frame RTSP → salva JPG)
-- Scheduler: snapshot a cada X minutos por câmera (configurável no admin)
-- Tabela `snapshots` (camera_id, captured_at, file_path, file_size)
-- Galeria de snapshots no admin por câmera + filtro por data
-- Relatório PDF exportável: "Câmera X — capturas entre data A e data B"
-
----
-
-#### 2.3 App mobile (PWA primeiro, depois nativo)
-
-**Por quê vende:** Cliente quer ver câmera no celular de forma nativa, sem lembrar de URL.
-
-**Fase 1 — PWA (0 custo adicional):**
-- Adicionar `manifest.json` com ícone, nome, `display: standalone`
-- Service Worker básico para cache de assets
-- Meta tags para iOS (apple-touch-icon, apple-mobile-web-app-capable)
+#### PWA Mobile (Progressive Web App)
+- `manifest.json` com ícone, nome, `display: standalone`
 - Botão "Adicionar à tela inicial" no primeiro acesso mobile
+- Ícones para iOS e Android
+- **Resultado:** app na tela do celular sem custo de publicação em loja
 
-**Fase 2 — App nativo (Flutter ou React Native):**
-- Reutiliza toda a API REST já existente
-- Push notifications nativas (FCM)
-- Biometria para login
-
----
-
-#### 2.4 Dashboard de analytics para o admin do tenant
-
-**Por quê vende:** O gestor da academia quer saber quem está acessando, quando e por quanto tempo.
-
-**O que implementar (usando `access_logs` + `active_sessions` já existentes):**
-- Horas de streaming por câmera por mês
-- Ranking de câmeras mais assistidas
-- Horário de pico de acesso (heatmap por hora/dia)
-- Tempo médio de sessão por usuário
-- Taxa de renovação de assinaturas
-- Gráfico de receita mensal (se tiver pagamento integrado)
-- Exportar relatório CSV/PDF
+#### Auto-cadastro do cliente
+- Tela de registro própria (fluxo completo: nome → e-mail → senha → escolher plano → pagar)
+- Admin não precisa cadastrar manualmente
+- Role `client` atribuída automaticamente ao registrar
 
 ---
 
-#### 2.5 Multi-câmera / mosaico com layout salvo
+### SPRINT 3
 
-**Por quê vende:** Segurança profissional exige ver múltiplas câmeras ao mesmo tempo.
+#### Gravação na nuvem por câmera (Cloud Recording)
+- go2rtc + FFmpeg gravando segmentos HLS no servidor
+- Upload automático para S3 / Backblaze B2 / Wasabi
+- Retenção configurável por plano: 7 / 15 / 30 dias
+- Player de playback cloud integrado
+- **Diferencial:** DVR queima, rouba, falha — a nuvem não
 
-**O que implementar:**
-- Tela de mosaico full-screen: 2x2, 3x3, 1+5
-- Salvar layout preferido por usuário (localStorage + sync DB)
-- Modo apresentação: rotação automática entre câmeras a cada N segundos (configurável)
-- Botão "Mosaico" no dashboard do cliente
-
----
-
-### PRIORIDADE 3 — Features premium (diferencial de plano alto)
-
-#### 3.1 Gravação na nuvem por câmera (cloud recording)
-
-**Por quê vende:** DVR queima, rouba, falha. Gravação na nuvem é o argumento de venda mais forte para segurança.
-
-**O que implementar:**
-- Usar go2rtc + FFmpeg para gravar segmentos HLS (.m3u8 + .ts) no servidor
-- Upload automático para **S3 / Backblaze B2 / Wasabi** (mais barato)
-- Retenção configurável por plano: 7 dias / 15 dias / 30 dias
-- Player de playback cloud integrado no sistema
-- Tabela `cloud_segments` (camera_id, bucket, path, started_at, ended_at, size_bytes, uploaded)
-- Comando `recordings:upload-pending` no scheduler
-
-**Planos sugeridos:**
-- Basic: sem cloud recording
-- Pro: 7 dias por câmera
-- Enterprise: 30 dias, todas as câmeras
+#### Alertas de movimento com IA (fase 2)
+- Captura de frame via FFmpeg no momento do evento
+- Classificação via OpenAI Vision: "pessoa", "veículo", "animal"
+- Filtragem de falsos positivos
+- Cliente recebe alerta com thumbnail
 
 ---
 
-#### 3.2 Reconhecimento facial (acesso por face)
+### SPRINT 4
 
-**Por quê vende:** Academias adoram biometria. É o diferencial mais "wow" para demonstração.
+#### Planos com limites configuráveis
+- Tabela `plans` com limites de câmeras, usuários, storage, retenção
+- Enforcement via middleware (erro com sugestão de upgrade)
+- Página de upgrade self-service
+- **Resultado:** monetização escalável por tier
 
-**O que implementar:**
-- Câmera dedicada na entrada
-- Cliente cadastra foto no perfil
-- Backend processa frame via **AWS Rekognition** ou **Face++ API**
-- Match → registra entrada/saída automaticamente
-- Relatório de presença gerado automaticamente
-- Integrar com sistema de catraca (webhook para GPIO/relé)
+#### API pública para integradores
+- Autenticação via API Key
+- Endpoints: listar câmeras, snapshot ao vivo, criar clipe, histórico de sessões
+- Rate limiting por chave
+- Documentação Swagger/Scramble
+- **Uso:** integradores, sistemas de condomínio, apps terceiros
 
----
-
-#### 3.3 Portal do responsável (para academias infantis / escolinhas)
-
-**Por quê vende:** Pais pagam premium para ver filhos em segurança. Caso de uso com altíssima percepção de valor.
-
-**O que implementar:**
-- Role `guardian` (responsável) além de `client`
-- Responsável vinculado a aluno(s)
-- Câmeras liberadas automaticamente baseadas nas turmas do aluno
-- Notificação quando aluno é detectado chegando/saindo (via reconhecimento facial ou QR code)
-- Acesso apenas nos horários de aula (restricao por `camera_user.expires_at` dinâmico)
+#### Portal do responsável (academias infantis)
+- Role `guardian` além de `client`
+- Câmeras liberadas automaticamente pelas turmas do aluno
+- Acesso restrito aos horários de aula
+- **Caso de uso:** pais pagam premium para ver filhos com segurança
 
 ---
 
-#### 3.4 Integração com sistema de controle de acesso
+## Observações para o Time de Vendas
 
-**Por quê vende:** Academias já têm catraca/controle de acesso. Integrar = vender junto.
+**Argumento principal:** O cliente já tem câmeras e DVR instalados. O sistema apenas adiciona acesso web profissional ao que já existe — sem trocar hardware.
 
-**O que implementar:**
-- Webhook receiver para eventos de entrada/saída de catraca
-- Correlacionar com câmera mais próxima → salvar clip automático dos 10 segundos do evento
-- Timeline de presença com thumbnail
-- API REST para sistemas de terceiros consumirem eventos de câmera
+**Tempo de implantação:** menos de 1 hora para subir um novo cliente (domínio + DNS + provisionamento).
 
----
+**Diferencial técnico:** streaming WebRTC (sem plugins, funciona em qualquer browser moderno, incluindo iPhone), acesso isolado por cliente, marca da academia no sistema.
 
-### PRIORIDADE 4 — SaaS B2B (escalar para múltiplos tenants)
-
-#### 4.1 Painel Super-Admin (sua visão de todos os tenants)
-
-**O que implementar:**
-- Rota `/superadmin` separada com middleware próprio
-- Listar todos os tenants: nome, câmeras ativas, usuários, status de pagamento, uso de storage
-- Criar novo tenant (executa o script Docker atual via `exec`)
-- Suspender/reativar tenant
-- Ver logs de todos os tenants
-- Dashboard de MRR (Monthly Recurring Revenue)
-
----
-
-#### 4.2 Planos com limites configuráveis
-
-**O que implementar:**
-- Tabela `plans` (name, max_cameras, max_users, storage_gb, recording_days, price_monthly, price_annual)
-- Tenant vinculado a um plano
-- Enforcement via middleware: ao adicionar câmera além do limite → erro com upgrade sugerido
-- Página de upgrade de plano self-service
-
-**Planos sugeridos para o mercado:**
-| Plano | Câmeras | Usuários | Gravação | Preço/mês |
-|---|---|---|---|---|
-| Starter | 4 | 10 | Sem cloud | R$ 97 |
-| Pro | 16 | 50 | 7 dias | R$ 297 |
-| Enterprise | Ilimitado | Ilimitado | 30 dias | R$ 897 |
-
----
-
-#### 4.3 API pública para integradores
-
-**O que implementar:**
-- Autenticação via API Key (tabela `api_keys`)
-- Endpoints REST documentados (Swagger/Scramble):
-  - `GET /api/cameras` — lista câmeras com status online/offline
-  - `GET /api/cameras/{id}/snapshot` — retorna JPEG ao vivo
-  - `POST /api/cameras/{id}/clip` — cria clipe de X segundos
-  - `GET /api/users/{id}/sessions` — histórico de acesso
-- Rate limiting por API key
-- Uso: integradores, sistemas de condomínio, apps terceiros
-
----
-
-## Observações Técnicas para Implementação
-
-### Câmeras Intelbras
-- Protocolo: Dahua
-- RTSP: `rtsp://user:pass@ip:554/cam/realmonitor?channel=1&subtype=0`
-- DVR API: porta HTTP 8000 (mediaFileFind)
-- DDNS: `villatenis.ddns-intelbras.com.br`
-
-### go2rtc
-- Roda em `http://localhost:1984`
-- Config em `config/cameras.php` → `go2rtc_public_url`
-- Streams nomeados por `cam{id}`
-- Playback DVR: stream temporário nomeado por timestamp
-- Proxy WebRTC em `/go2rtc/webrtc` para evitar CORS
-
-### Ambiente de desenvolvimento
-- PHP: `C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe` (nunca XAMPP PHP 7.4)
-- Projeto: `C:\laragon\www\cameras`
-- URL local: `http://cameras.test`
-- Banco: MySQL `cameras` (root sem senha)
-
-### Controle de acesso (ordem de verificação)
-1. Middleware `auth` — autenticado?
-2. Middleware `subscription` — assinatura ativa? → redireciona `/assinatura-expirada`
-3. Controller/Model — câmera liberada? (`camera_user` + `expires_at`)
-4. Pivot `expires_at` — acesso da câmera não expirou?
-
-### Scheduler atual
-```
-* * * * * cd /var/www/cameras && php artisan schedule:run
-```
-- `clips:purge` — 00:00 (apaga clipes +2 dias)
-- `subscriptions:expire` — 00:05 (marca vencidas)
-
-### Multi-tenant
-- Cada tenant roda em container Docker separado
-- Provisionamento via script (já funcional)
-- Banco isolado por tenant
-
----
-
-## Sugestão de Ordem de Implementação (Sprint)
-
-| Sprint | Feature | Impacto |
-|---|---|---|
-| 1 | E-mails automatizados (boas-vindas, vencimento) | Profissionaliza imediatamente |
-| 1 | White-label básico (logo + cor por tenant) | Facilita venda para academias |
-| 2 | Self-service de assinatura com Asaas/PIX | Elimina trabalho manual do admin |
-| 2 | PWA mobile (manifest + ícone) | Experiência mobile sem custo |
-| 3 | Snapshot agendado + galeria | Feature exclusiva percebida como valiosa |
-| 3 | Mosaico multi-câmera com layout salvo | Diferencial para clientes power user |
-| 4 | Dashboard analytics do tenant | Justifica renovação de assinatura |
-| 4 | Painel Super-Admin | Permite gerenciar múltiplos clientes sem SSH |
-| 5 | Alertas de movimento (fase 1 sem IA) | Principal dor do mercado |
-| 6 | Cloud recording (S3 + retenção por plano) | Feature premium que justifica plano caro |
-| 7 | Planos com limites + upgrade self-service | Monetização escalável |
+**Objeção comum — "posso usar o app do DVR gratuitamente":**
+- Apps de DVR são feitos para técnicos, não para pais/alunos
+- Sem controle de acesso individual
+- Sem assinatura e cobrança recorrente gerenciada
+- Sem clipes para download com quota por usuário
+- Sem logs de auditoria
+- Sem white-label com a marca da academia

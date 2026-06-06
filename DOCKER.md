@@ -214,6 +214,22 @@ certbot certonly --nginx -d cameras.cliente.com.br
 # (o script detecta que o container já existe e só refaz o SSL/Nginx)
 ```
 
+### Site camerasonline.net.br abre o login do sistema de câmeras
+
+**Causa:** Cloudflare em modo SSL "Full" conecta no servidor pela porta 443. O vhost do site de marketing escuta apenas na porta 80. O nginx não encontra correspondência e cai no primeiro vhost SSL disponível (ex: `cameras_icomenezes`), que serve o sistema de câmeras.
+
+**Solução:** Mudar o modo SSL no Cloudflare para **Flexible**:
+- Dashboard Cloudflare → domínio `camerasonline.net.br` → **SSL/TLS** → Overview
+- Alterar de "Full" para **Flexible**
+
+Com "Flexible": o navegador acessa via HTTPS pelo Cloudflare, mas o Cloudflare bate no servidor em HTTP (porta 80), onde o vhost correto está configurado. Não é necessário certificado SSL no servidor para os subdomínios `*.camerasonline.net.br`.
+
+**Confirmação antes de alterar** (no próprio servidor):
+```bash
+curl -H "Host: camerasonline.net.br" http://127.0.0.1/
+# Deve retornar o HTML do site de marketing, não o Laravel
+```
+
 ---
 
 ## Capacidade estimada (Hetzner CX32 — 4 vCPU / 8GB RAM)

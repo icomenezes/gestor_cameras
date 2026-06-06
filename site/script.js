@@ -264,7 +264,7 @@ function setupSignupModal() {
 
     setLoading(true);
 
-    fetch('/api/signup.php', {
+    fetch('/api/register', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ name: name, email: email, password: password })

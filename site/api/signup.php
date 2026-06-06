@@ -24,10 +24,15 @@ if (!$body || !is_array($body)) {
     exit;
 }
 
-// URL interna do sistema Laravel principal
-// No servidor, ambos estão no mesmo host — pode ser localhost com a porta do container
-// ou o domínio interno. Ajuste conforme a configuração do nginx.
-$apiUrl = 'https://app.camerasonline.net.br/api/register';
+// Chama o container do sistema principal diretamente via HTTP interno.
+// O nginx mapeia icomenezes.camerasonline.net.br → porta do container trsystem.
+// Internamente no servidor, basta bater em localhost com o Host header correto,
+// evitando roundtrip SSL e dependência de DNS externo.
+//
+// Para descobrir a porta: cat /opt/cameras/trsystem/credenciais.txt
+// ou: docker ps | grep cameras_trsystem_app
+$internalPort = getenv('CAMERAS_MAIN_PORT') ?: '8100'; // porta do container trsystem no host
+$apiUrl = 'http://127.0.0.1:' . $internalPort . '/api/register';
 
 $ch = curl_init($apiUrl);
 curl_setopt_array($ch, [
@@ -37,9 +42,10 @@ curl_setopt_array($ch, [
     CURLOPT_HTTPHEADER     => [
         'Content-Type: application/json',
         'Accept: application/json',
+        'Host: icomenezes.camerasonline.net.br',
     ],
-    CURLOPT_TIMEOUT        => 180, // provisionamento pode demorar
-    CURLOPT_SSL_VERIFYPEER => true,
+    CURLOPT_TIMEOUT        => 180, // provisionamento pode demorar ~2 min
+    CURLOPT_SSL_VERIFYPEER => false,
 ]);
 
 $response = curl_exec($ch);

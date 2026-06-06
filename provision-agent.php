@@ -3,10 +3,8 @@
  * Agente de provisionamento — roda no HOST (não no container)
  * Recebe POST do container trsystem e executa novo-cliente.sh
  *
- * Iniciar: php provision-agent.php
+ * Iniciar: nohup php /var/www/cameras/provision-agent.php >> /var/log/provision-agent.log 2>&1 &
  * Porta:   9099 (localhost only)
- *
- * No servidor: nohup php /var/www/cameras/provision-agent.php >> /var/log/provision-agent.log 2>&1 &
  */
 
 $port   = 9099;
@@ -20,26 +18,33 @@ if (!$sock) {
 }
 
 echo date('Y-m-d H:i:s') . " Agente ouvindo em 127.0.0.1:{$port}\n";
+flush();
 
-while ($conn = stream_socket_accept($sock, -1)) {
+while (true) {
+    $conn = @stream_socket_accept($sock, 30);
+    if (!$conn) continue;
+
     $raw = '';
-    while (!feof($conn)) {
-        $raw .= fread($conn, 4096);
+    $deadline = time() + 5;
+    while (!feof($conn) && time() < $deadline) {
+        $chunk = fread($conn, 4096);
+        if ($chunk === false || $chunk === '') break;
+        $raw .= $chunk;
         if (strpos($raw, "\r\n\r\n") !== false) break;
     }
 
     // Lê body do POST
     $body = '';
     if (preg_match('/Content-Length:\s*(\d+)/i', $raw, $m)) {
-        $len  = (int)$m[1];
-        $body = substr($raw, strpos($raw, "\r\n\r\n") + 4, $len);
+        $headerEnd = strpos($raw, "\r\n\r\n");
+        $body = substr($raw, $headerEnd + 4, (int)$m[1]);
     }
 
     $data = json_decode($body, true);
 
     // Valida secret
     if (($data['secret'] ?? '') !== $secret) {
-        fwrite($conn, "HTTP/1.1 403 Forbidden\r\nContent-Type: application/json\r\n\r\n{\"error\":\"forbidden\"}");
+        fwrite($conn, "HTTP/1.1 403 Forbidden\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{\"error\":\"forbidden\"}");
         fclose($conn);
         continue;
     }
@@ -50,24 +55,26 @@ while ($conn = stream_socket_accept($sock, -1)) {
     $password = $data['password'] ?? '';
 
     if (!$slug || !$domain || !$email || strlen($password) < 8) {
-        fwrite($conn, "HTTP/1.1 422 Unprocessable\r\nContent-Type: application/json\r\n\r\n{\"error\":\"dados invalidos\"}");
+        fwrite($conn, "HTTP/1.1 422 Unprocessable\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{\"error\":\"dados invalidos\"}");
         fclose($conn);
         continue;
     }
 
+    $logFile = '/var/log/provision-' . $slug . '.log';
     $cmd = sprintf(
-        'bash %s --slug %s --domain %s --email %s --password %s >> /var/log/provision-%s.log 2>&1 &',
+        'bash %s --slug %s --domain %s --email %s --password %s >> %s 2>&1 &',
         escapeshellarg($script),
         escapeshellarg($slug),
         escapeshellarg($domain),
         escapeshellarg($email),
         escapeshellarg($password),
-        escapeshellarg($slug)
+        escapeshellarg($logFile)
     );
 
     echo date('Y-m-d H:i:s') . " Provisionando: {$slug} ({$domain})\n";
+    flush();
     shell_exec($cmd);
 
-    fwrite($conn, "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\n\r\n{\"status\":\"provisioning\"}");
+    fwrite($conn, "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{\"status\":\"provisioning\"}");
     fclose($conn);
 }

@@ -284,22 +284,55 @@
     setTimeout(function () { activateStep(idx + 1); }, delay);
   });
 
-  // Se já veio com url (redirect direto do signup.php), mostra resultado
-  if (url) {
-    // Aguarda os steps animarem antes de revelar
-    var totalAnimTime = STEP_DELAYS[STEP_DELAYS.length - 1] + 1200;
-    setTimeout(function () {
-      // Marca todos como done
-      activateStep(5);
-      setTimeout(showReady, 400);
-    }, totalAnimTime);
+  if (!slug || !url) {
+    showError('Parâmetros inválidos. Tente criar a conta novamente.');
     return;
   }
 
-  // Fallback: se não veio url, mostra erro
-  setTimeout(function () {
-    showError('Não recebemos confirmação do servidor. Entre em contato pelo WhatsApp.');
-  }, 8000);
+  // Polling real: verifica /api/status.php?slug=xxx a cada 5s
+  // Só mostra "pronto" quando o container está registrado E respondendo
+  var pollStart   = Date.now();
+  var maxWait     = 240 * 1000; // 4 min timeout
+  var pollDelay   = 5000;
+  var stepShown   = 1;
+
+  // Avança os steps visuais gradualmente enquanto aguarda
+  var stepTimers = [
+    setTimeout(function () { if (stepShown < 2) { activateStep(2); stepShown = 2; } }, 2000),
+    setTimeout(function () { if (stepShown < 3) { activateStep(3); stepShown = 3; } }, 5000),
+    setTimeout(function () { if (stepShown < 4) { activateStep(4); stepShown = 4; } }, 9000),
+  ];
+
+  function clearStepTimers() {
+    stepTimers.forEach(function (t) { clearTimeout(t); });
+  }
+
+  function poll() {
+    if (Date.now() - pollStart > maxWait) {
+      clearStepTimers();
+      showError('O provisionamento demorou mais que o esperado. Entre em contato pelo WhatsApp.');
+      return;
+    }
+
+    fetch('/api/status.php?slug=' + encodeURIComponent(slug), { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.ready) {
+          clearStepTimers();
+          activateStep(5);
+          setTimeout(showReady, 600);
+        } else {
+          setTimeout(poll, pollDelay);
+        }
+      })
+      .catch(function () {
+        // status.php inacessível — tenta de novo
+        setTimeout(poll, pollDelay);
+      });
+  }
+
+  // Primeira verificação após 15s (containers precisam de tempo para iniciar)
+  setTimeout(poll, 15000);
 }());
 </script>
 

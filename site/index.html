@@ -36,6 +36,13 @@
     .signup-error{background:#450a0a;border:1px solid #7f1d1d;border-radius:8px;color:#fca5a5;font-size:.85rem;padding:10px 13px;margin-bottom:12px}
     .signup-footnote{font-size:.72rem;color:#475569;text-align:center;margin-top:14px}
     .signup-footnote a{color:#64748b;text-decoration:underline}
+
+    /* Overlay de loading dentro do modal */
+    .signup-loading{position:absolute;inset:0;background:rgba(2,6,23,.92);border-radius:16px;backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;opacity:0;pointer-events:none;transition:opacity .25s ease}
+    .signup-loading.active{opacity:1;pointer-events:all}
+    .signup-loading-spinner{width:44px;height:44px;border:3px solid #334155;border-top-color:#3b82f6;border-radius:50%;animation:spin .85s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .signup-loading-text{font-size:.9rem;color:#94a3b8;font-weight:500}
   </style>
 </head>
 <body>
@@ -352,6 +359,10 @@
 <!-- Modal de Cadastro Trial -->
 <div id="signup-modal" class="signup-overlay" aria-modal="true" role="dialog" aria-labelledby="modal-title" hidden>
   <div class="signup-card">
+    <div class="signup-loading" id="signup-loading" aria-live="polite">
+      <div class="signup-loading-spinner"></div>
+      <span class="signup-loading-text">Criando seu ambiente...</span>
+    </div>
     <button class="signup-close" id="signup-close" aria-label="Fechar">&times;</button>
     <div class="signup-header">
       <div class="signup-icon">

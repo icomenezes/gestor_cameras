@@ -290,9 +290,11 @@ function setupSignupModal() {
     });
   });
 
+  var loadingOverlay = document.getElementById('signup-loading');
+
   function setLoading(on) {
-    submitBtn.disabled    = on;
-    submitBtn.textContent = on ? 'Criando seu ambiente...' : 'Criar minha conta grátis';
+    loadingOverlay.classList.toggle('active', on);
+    submitBtn.disabled = on;
   }
 
   function showError(msg) {

@@ -55,9 +55,20 @@ class PublicRegisterController extends Controller
                 'email'    => $data['email'],
                 'password' => $data['password'],
             ]);
-            $tenant->update(['meta' => ['provision_status' => $response->status()]]);
+
+            if ($response->status() !== 202) {
+                $tenant->update(['meta' => ['provision_error' => 'agent_status_' . $response->status()]]);
+                return response()->json([
+                    'error' => 'Erro ao iniciar provisionamento. Tente novamente ou contate o suporte.',
+                ], 500);
+            }
+
+            $tenant->update(['meta' => ['provision_status' => 'started']]);
         } catch (\Throwable $e) {
             $tenant->update(['meta' => ['provision_error' => $e->getMessage()]]);
+            return response()->json([
+                'error' => 'Serviço de provisionamento indisponível. Tente novamente em instantes.',
+            ], 503);
         }
 
         return response()->json([

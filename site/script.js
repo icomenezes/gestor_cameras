@@ -236,7 +236,7 @@ function setupSignupModal() {
   function openModal() {
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
-    setTimeout(function () { document.getElementById('signup-email').focus(); }, 80);
+    setTimeout(function () { document.getElementById('signup-name').focus(); }, 80);
   }
 
   function closeModal() {

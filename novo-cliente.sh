@@ -133,7 +133,7 @@ services:
       CACHE_STORE: file
       QUEUE_CONNECTION: database
 
-      GO2RTC_URL: "http://host.docker.internal:1984"
+      GO2RTC_URL: "http://127.0.0.1:1984"
       GO2RTC_PUBLIC_URL: "https://${DOMAIN}/go2rtc"
 
       FFMPEG_PATH: /usr/bin/ffmpeg

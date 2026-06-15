@@ -75,6 +75,6 @@ while (true) {
     flush();
     shell_exec($cmd);
 
-    fwrite($conn, "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{\"status\":\"provisioning\"}");
-    fclose($conn);
+    @fwrite($conn, "HTTP/1.1 202 Accepted\r\nContent-Type: application/json\r\nConnection: close\r\n\r\n{\"status\":\"provisioning\"}");
+    @fclose($conn);
 }

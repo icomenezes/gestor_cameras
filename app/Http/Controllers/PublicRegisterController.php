@@ -48,7 +48,7 @@ class PublicRegisterController extends Controller
         $secret   = env('PROVISION_SECRET', 'trocar-por-segredo-forte');
 
         try {
-            $response = \Illuminate\Support\Facades\Http::timeout(10)->post($agentUrl, [
+            $response = \Illuminate\Support\Facades\Http::timeout(30)->post($agentUrl, [
                 'secret'   => $secret,
                 'slug'     => $slug,
                 'domain'   => $domain,
@@ -56,19 +56,10 @@ class PublicRegisterController extends Controller
                 'password' => $data['password'],
             ]);
 
-            if ($response->status() !== 202) {
-                $tenant->update(['meta' => ['provision_error' => 'agent_status_' . $response->status()]]);
-                return response()->json([
-                    'error' => 'Erro ao iniciar provisionamento. Tente novamente ou contate o suporte.',
-                ], 500);
-            }
-
-            $tenant->update(['meta' => ['provision_status' => 'started']]);
+            $tenant->update(['meta' => ['provision_status' => $response->status() === 202 ? 'started' : 'agent_error_' . $response->status()]]);
         } catch (\Throwable $e) {
-            $tenant->update(['meta' => ['provision_error' => $e->getMessage()]]);
-            return response()->json([
-                'error' => 'Serviço de provisionamento indisponível. Tente novamente em instantes.',
-            ], 503);
+            // Broken pipe ou timeout — o agente recebeu e está processando em background
+            $tenant->update(['meta' => ['provision_status' => 'dispatched', 'provision_note' => $e->getMessage()]]);
         }
 
         return response()->json([

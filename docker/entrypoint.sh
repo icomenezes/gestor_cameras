@@ -76,5 +76,19 @@ php artisan db:seed --class=AdminSeeder --force --no-interaction
 # Permissões finais
 chown -R www-data:www-data storage bootstrap/cache
 
-# Iniciar todos os serviços
-exec /usr/bin/supervisord -c /etc/supervisord.conf
+# Iniciar todos os serviços em background e aguardar go2rtc subir para sincronizar câmeras
+exec /usr/bin/supervisord -c /etc/supervisord.conf &
+SUPERVISOR_PID=$!
+
+echo "Aguardando go2rtc iniciar..."
+for i in $(seq 1 30); do
+    if wget -qO- http://127.0.0.1:1984/api/streams >/dev/null 2>&1; then
+        echo "go2rtc disponível — sincronizando câmeras..."
+        php artisan go2rtc:sync --no-interaction || true
+        echo "Sync concluído."
+        break
+    fi
+    sleep 2
+done
+
+wait $SUPERVISOR_PID

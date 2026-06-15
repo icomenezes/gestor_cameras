@@ -1,7 +1,7 @@
 ﻿@props(['url', 'autoplay' => true])
 
 @php
-    $isWebRTC = str_contains($url, '/api/webrtc?src=');
+    $isWebRTC = str_contains($url, '/api/webrtc?src=') || str_contains($url, '/go2rtc/webrtc?src=');
     $isHLS    = str_ends_with($url, '.m3u8') || str_contains($url, '/api/stream.m3u8');
     $isMp4    = preg_match('/\.(mp4|webm|ogg)(\?|$)/i', $url);
     $isMjpeg  = preg_match('/\.(jpg|mjpg|mjpeg)(\?|$)/i', $url) || str_contains($url, 'mjpeg');

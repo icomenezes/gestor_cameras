@@ -43,9 +43,8 @@ class Camera extends Model
         $rtsp = $this->rtsp_url;
 
         if (str_starts_with($rtsp, 'rtsp://')) {
-            // usa URL pública para que o browser consiga se conectar ao go2rtc
-            $base = rtrim(config('cameras.go2rtc_public_url', config('cameras.go2rtc_url', 'http://localhost:1984')), '/');
-            return "{$base}/api/webrtc?src={$this->streamKey()}";
+            // proxy Laravel — evita CORS e centraliza auth
+            return '/go2rtc/webrtc?src=' . $this->streamKey();
         }
 
         return $rtsp;
